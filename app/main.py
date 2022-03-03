@@ -18,11 +18,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from app.navegacao import nav_contas, nav_cartao, login
 from app.utils.data_functions import converte_datetime
 
-import config  # COMENTAR DEPOIS DOS TESTES
-path_download = config.path_download
-agencia = config.agencia1
-conta = config.conta1
-senha = config.senha1
+# import pessoal.config  # COMENTAR DEPOIS DOS TESTES
+# path_download = config.path_download
+# agencia = config.agencia1
+# conta = config.conta1
+# senha = config.senha1
 
 def acesso_bb(path_download, agencia, conta, senha=None):
     """
