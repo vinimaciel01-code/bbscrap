@@ -24,3 +24,5 @@
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
 
 .venv
+config.py
+acesso_vini.py

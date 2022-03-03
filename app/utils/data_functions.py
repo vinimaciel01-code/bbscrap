@@ -1,10 +1,15 @@
+"""
+Funções de manipulação e testes em Datas
+"""
+
 import datetime as dt
 
-def data_valida(data):
+
+def valida(data):
     """
-    Valida se a data é válida
-    :param data: string ou datetime
-    :return: boolean
+    Valida se a data é válida (Date ou Datetime)
+    @param data: string ou datetime
+    return: boolean
     """
 
     if isinstance(data, dt.datetime):
@@ -13,20 +18,14 @@ def data_valida(data):
     if isinstance(data, dt.date):
         return True
 
-    if isinstance(data, str):
-        try:
-            dt.datetime.strptime(data, '%d/%m/%Y')
-            return True
-        except:
-            return False
-            # raise ValueError(f'Data "{data}" invalida. Erro ({erro.__class__})')
+    return False
 
 
-def data_converte(data):
+def converte_datetime(data):
     """
-    Retorna a data convertida para 'datetime.datetime' ou msg de 'Erro'
-    :param data: string ou datetime formatada
-    :return: data datetime.datetime
+    Retorna a data convertida para 'datetime.datetime'
+    @param data: string ou datetime formatada
+    return: data datetime.datetime ou msg de 'Erro'
     """
 
     if isinstance(data, dt.datetime):
@@ -42,14 +41,16 @@ def data_converte(data):
             # print('instancia de string: convertendo para datetime.datetime')
             return dt.datetime.strptime(data, '%d/%m/%Y')
         except Exception as erro:
-            raise ValueError(f'Data "{data}" invalida. Erro ({erro.__class__})')
+            raise ValueError(
+                f'Data "{data}" invalida. Erro ({erro.__class__})'
+            ) from erro
     else:
         raise ValueError('Erro: nao se encaixou nos casos especificados.')
 
 
 if __name__ == '__main__':
 
-    dataT = dt.datetime.today().date()
-    isinstance(dataT, dt.date)
-    print(data_valida(dataT))
-    print(data_converte(dataT))
+    data_teste = dt.datetime.today().date()
+    isinstance(data_teste, dt.date)
+    print(valida(data_teste))
+    print(converte_datetime(data_teste))
