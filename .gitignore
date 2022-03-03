@@ -26,3 +26,4 @@
 .venv
 config.py
 acesso_vini.py
+__pycache__
