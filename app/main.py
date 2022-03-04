@@ -56,7 +56,10 @@ def acesso_bb(path_download, agencia, conta, senha=None):
         lista_meses.append(prox_mes)
 
     # Abre o navegador na página
-    driver = webdriver.Chrome()
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('excludeSwitches', ['enable-logging']) # suprimi warnings
+    
+    driver = webdriver.Chrome(options=options)
     driver.maximize_window()
     driver.set_page_load_timeout(20000)  # milisegundos
     wdw = WebDriverWait(driver, 20)
@@ -84,32 +87,32 @@ def acesso_bb(path_download, agencia, conta, senha=None):
     login.login(driver, agencia, conta, senha)
 
     nav_contas.nav_corrente(driver)
-    dados, dados_header = nav_contas.nav_extrato_baixar(driver, lista_meses, path_download)
-    base = base.append(dados, ignore_index=True)
-    baseh = baseh.append(dados_header, ignore_index=True)
-
+    dados, dadosh = nav_contas.nav_extrato_baixar(driver, lista_meses, path_download)
+    base = pd.concat([base, dados], ignore_index=True)
+    baseh = pd.concat([baseh, dadosh], ignore_index=True)
+    
     nav_contas.nav_poupanca(driver)
-    dados, dados_header = nav_contas.nav_extrato_baixar(driver, lista_meses, path_download)
-    base = base.append(dados, ignore_index=True)
-    baseh = baseh.append(dados_header, ignore_index=True)
-
+    dados, dadosh = nav_contas.nav_extrato_baixar(driver, lista_meses, path_download)
+    base = pd.concat([base, dados], ignore_index=True)
+    baseh = pd.concat([baseh, dadosh], ignore_index=True)
+    
     nav_cartao.nav_cartao(driver)
-    dados, dados_header = nav_cartao.nav_cartao_baixar(driver, lista_meses, path_download)
-    base = base.append(dados, ignore_index=True)
-    baseh = baseh.append(dados_header, ignore_index=True)
-
+    dados, dadosh = nav_cartao.nav_cartao_baixar(driver, lista_meses, path_download)
+    base = pd.concat([base, dados], ignore_index=True)
+    baseh = pd.concat([baseh, dadosh], ignore_index=True)
+    
     ##########################
     #### TROCA DE TITULAR ####
     ##########################
 
     if login.login_dependente(driver, '2º'):
-        print('Troca de titular')
+        print('\nTROCA DE TITULAR')
 
         nav_cartao.nav_cartao(driver)
-        dados, dados_header = nav_cartao.nav_cartao_baixar(driver, lista_meses, path_download)
-        base = base.append(dados, ignore_index=True)
-        baseh = baseh.append(dados_header, ignore_index=True)
-        
+        dados, dadosh = nav_cartao.nav_cartao_baixar(driver, lista_meses, path_download)
+        base = pd.concat([base, dados], ignore_index=True)
+        baseh = pd.concat([baseh, dadosh], ignore_index=True)
+            
     ############
     #### FIM ###
     ############

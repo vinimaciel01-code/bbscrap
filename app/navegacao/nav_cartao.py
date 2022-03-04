@@ -80,7 +80,7 @@ def nav_cartao_baixar(driver, lista_meses, path_download):
     cartoes = cartoes.find_elements(By.TAG_NAME, 'img')
 
     for cartao in cartoes:
-        print('-', cartao.get_attribute('funcao'))
+        print('\n-', cartao.get_attribute('funcao'))
 
         # espera a img dos cartoes estar carregada
         locator = (By.XPATH, '//*[@id="carousel-cartoes"]/img[1]')
@@ -149,11 +149,9 @@ def nav_cartao_baixar(driver, lista_meses, path_download):
             if lista is not None:
                 lista['mes_ref'] = headers_mes_nomes[index].lower()
                 lista_header['mes_ref'] = headers_mes_nomes[index].lower()
-                agregados = agregados.append(lista)
-                agregados_header = agregados_header.append(
-                    lista_header, ignore_index=True
-                )
-
+                agregados = pd.concat([agregados, lista], ignore_index=True)
+                agregados_header = pd.concat([agregados_header, lista_header], ignore_index=True)
+                
             print(lista.iloc[0, 0])
 
     agregados_header['tipo_conta'] = 'Cartão'

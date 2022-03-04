@@ -17,10 +17,6 @@ from ofxparse import OfxParser
 
 from app.utils.arquivo import download_concluido
 
-####################
-##### FUNCOES ######
-####################
-
 
 def ler_ofx(path_download):
     """
@@ -50,57 +46,51 @@ def ler_ofx(path_download):
 
     print('Lendo:', arquivo_novato)
 
-    # le os dados do OFX
-    account = ofx.account
+    # le os dados de cabeçalho
+    account = ofx.account # QUANDO VAZIO???
     statement = account.statement
 
-    lista_header = {}
-    lista_header['conta'] = account.account_id  # numero da conta
-    lista_header['agencia'] = account.branch_id  # agencia
-    lista_header['banco'] = account.institution.fid  # nome do Banco
-    lista_header[
-        'dt_inicio'
-    ] = statement.start_date  # The start date of the transactions
-    lista_header[
-        'dt_fim'
-    ] = statement.end_date  # The end date of the transactions
-    lista_header['saldo'] = statement.balance
+    lista_header = pd.DataFrame({})
+    lista_header['conta'] = [account.account_id]  # número da conta
+    lista_header['agencia'] = [account.branch_id]  # número da agência
+    lista_header['banco'] = [account.institution.fid]  # nome do Banco
+    lista_header['dt_inicio'] = [statement.start_date]  # data inicial das transações
+    lista_header['dt_fim'] = [statement.end_date]  # data final das transações
+    lista_header['saldo'] = [statement.balance]
 
-    lista = pd.DataFrame({})
+    # le os dados das transações
+    cols=['data', 'valor', 'memo', 'tipo_mov']
+    lista = pd.DataFrame(columns=cols)
     for transaction in statement.transactions:
         lst = []
         lst.append(transaction.date.date())
         lst.append(transaction.amount)
         lst.append(transaction.memo)
         lst.append(transaction.type)
-        # lst.append(transaction.id)
-        # lst.append(transaction.checknum)
-        lst = pd.Series(data=lst)
-        lista = lista.append(lst, ignore_index=True)
+        lst = pd.DataFrame([lst], columns=cols)
+        lista = pd.concat([lista, lst], ignore_index=True)
 
     # Ajustes no dados finais
-    lista.rename(
-        columns={0: 'data', 1: 'valor', 2: 'memo', 3: 'tipo_mov'}, inplace=True
-    )
     if len(lista) > 0:
         lista['valor'] = pd.to_numeric(lista['valor'], errors='ignore')
-        lista_header['saldo'] = pd.to_numeric(
-            lista_header['saldo'], errors='ignore'
-        )
+        lista_header['saldo'] = pd.to_numeric(lista_header['saldo'], errors='ignore')
 
     # add variacao e a tira da conta (se houver)
-    posicao = lista_header['conta'].find('/')
-    lista_header['variacao'] = [
-        lista_header['conta'][posicao + 1 :] if posicao >= 0 else ''
-    ][0]
-    lista_header['conta'] = [
-        lista_header['conta'][:posicao] if posicao >= 0 else lista_header['conta']
-    ][0]
-
+    lista_header['variacao'] = [x[x.find('/') + 1 :] 
+        if x.find('/') > 0 else '' for x in lista_header['conta']]
+    lista_header['conta'] = [x[:x.find('/')] 
+        if x.find('/') > 0 else x for x in lista_header['conta']]
+    
     # novas variáveis das transacoes
-    lista['banco'] = lista_header['banco']
-    lista['agencia'] = lista_header['agencia']
-    lista['conta'] = lista_header['conta']
-    lista['variacao'] = lista_header['variacao']
+    lista['banco'] = lista_header['banco'][0]
+    lista['agencia'] = lista_header['agencia'][0]
+    lista['conta'] = lista_header['conta'][0]
+    lista['variacao'] = lista_header['variacao'][0]
 
     return lista, lista_header
+
+
+if __name__ == '__main__':
+
+    path_download = r'C:\Users\vinim\Downloads'
+    ler_ofx(path_download)

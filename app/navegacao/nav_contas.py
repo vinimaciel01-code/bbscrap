@@ -55,7 +55,7 @@ def nav_poupanca(driver):
     @param driver: driver da página Selenium
     """
     wdw = WebDriverWait(driver, 20)
-    
+
     # navegacao
     locator = (By.XPATH, '//a[@codigo="32589"]')
     element = wdw.until(ec.element_to_be_clickable(locator))
@@ -216,9 +216,8 @@ def nav_extrato_baixar(driver, lista_meses, path_download):
         # salva
         lista_header['mes_ref'] = value.lower()
         lista['mes_ref'] = value.lower()
-
-        agregados_header = agregados_header.append(lista_header, ignore_index=True)
-        agregados = agregados.append(lista)
+        agregados = pd.concat([agregados, lista], ignore_index=True)
+        agregados_header = pd.concat([agregados_header, lista_header], ignore_index=True)
 
     agregados_header['tipo_conta'] = [
         'Poupança' if x != '' else 'Conta Corrente'
