@@ -19,5 +19,5 @@ O programa abre o navegador, acessa a conta bancária e baixa os extratos. A sen
 
 A função então retorna duas base de dados, a primeira com os dados dos extratos e o segundo dados de cabeçalho (totais, datas, etc.).
 
-A função abaixo, em app.main
-`dados, dados_header = acesso_bb(path_download, agencia, conta, senha=None):`
+Em app.main, rode função acesso_bb:
+`dados, dados_header = acesso_bb(path_download='c:downloads', agencia='123456', conta='1212123', senha='batata123'):`
