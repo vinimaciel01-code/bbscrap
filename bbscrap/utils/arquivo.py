@@ -1,18 +1,11 @@
-"""
-Especifica as formas de salvar um arquivo em excel.
-Seja add aba, substituindo dados existente ou subs o arquivo inteiro.
-"""
+"""Especifica as formas de salvar um arquivo em excel."""
 
 import time
 from pathlib import Path
 
-# import os
-# import pandas as pd
-# import numpy as np
-
 
 def download_concluido(directory):
-    """Espera downloads serem concluídos"""
+    """Espera downloads serem concluídos."""
     dl_wait = True
     while dl_wait:
         time.sleep(1)
@@ -22,7 +15,7 @@ def download_concluido(directory):
 
 
 def is_download_finished(temp_folder):
-    """Diz se existe download em andamento"""
+    """Diz se existe download em andamento."""
     firefox_temp_file = sorted(Path(temp_folder).glob('*.part'))
     chrome_temp_file = sorted(Path(temp_folder).glob('*.crdownload'))
     downloaded_files = sorted(Path(temp_folder).glob('*.*'))
@@ -58,8 +51,8 @@ def is_download_finished(temp_folder):
 
 # def salva_excel_subst_aba(filename, sheetname, dataframe, startrow=0):
 #     """
-#     Salva os dados, substituindo uma aba existente. O arquivo excel deve existir.
-#     ExcelWriter usa writer.sheets para acessar a planilha. Se você deixar ele vazio,
+#     Salva os dados, substituindo uma aba existente. O arquivo deve existir.
+#     ExcelWriter usa writer.sheets para acessar a planilha. Se deixar vazio,
 #     não saberá que a aba já existe e criará uma nova (adaptando o nome).
 #     @param filename: arquivo a salvar (path completo ou
 #     @param sheetname: nome da aba
@@ -85,7 +78,7 @@ def is_download_finished(temp_folder):
 
 # def salva_excel_novo_arquivo(filename, sheetname, dataframe, startrow=0):
 #     """
-#     Salva os dados na aba requerida, criando o arquivo (ou sobrescrevendo o existente)
+#     Salva os dados na aba requerida, criando o arquivo (ou sobrescrevendo)
 #     @param filename: arquivo a salvar (path completo ou
 #     @param sheetname: nome da aba
 #     @param dataframe: dados a salvar

@@ -1,6 +1,6 @@
-"""
-Acesso à conta do Banco do brasil
-Download e leitura dos extratos de conta corrente, poupança e cartões de crédito.
+"""Acesso à conta do Banco do Brasil.
+
+Download dos extratos de conta corrente, poupança e cartões de crédito.
 Exporta a base em excel.
 """
 
@@ -15,8 +15,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from app.navegacao import nav_contas, nav_cartao, login
-from app.utils.data_functions import converte_datetime
+from bbscrap.navegacao import nav_contas, nav_cartao, login
+from bbscrap.utils.data_functions import converte_datetime
 
 # import pessoal.config  # COMENTAR DEPOIS DOS TESTES
 # path_download = config.path_download
@@ -24,10 +24,11 @@ from app.utils.data_functions import converte_datetime
 # conta = config.conta1
 # senha = config.senha1
 
+
 def acesso_bb(path_download, agencia, conta, senha=None):
-    """
-    Organiza as etapas de navegação para entrar na conta bancária
-    e baixar todas as informações necessárias
+    """Organiza as etapas de navegação para entrar na conta bancária.
+
+    Baixar todas as informações necessárias
     @path-download: caminho completo da pasta de downloads
     @agencia: número da agência (com DV, sem traço)
     @conta: numero da conta (com DV, sem traço)
@@ -36,9 +37,7 @@ def acesso_bb(path_download, agencia, conta, senha=None):
     dt1 = converte_datetime(dt.datetime(2021, 12, 1).date())
     dt2 = converte_datetime(dt.datetime.today().date())
 
-    ###############
-    ##### MAIN ####
-    ###############
+    # MAIN
 
     base = pd.DataFrame({})
     baseh = pd.DataFrame({})
@@ -57,8 +56,10 @@ def acesso_bb(path_download, agencia, conta, senha=None):
 
     # Abre o navegador na página
     options = webdriver.ChromeOptions()
-    options.add_experimental_option('excludeSwitches', ['enable-logging']) # suprimi warnings
-    
+    options.add_experimental_option(
+        'excludeSwitches', ['enable-logging']
+    )   # suprimi warnings
+
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
     driver.set_page_load_timeout(20000)  # milisegundos
@@ -79,43 +80,45 @@ def acesso_bb(path_download, agencia, conta, senha=None):
     tag = wdw.until(ec.presence_of_element_located(locator))
     driver.execute_script('arguments[0].click();', tag)
 
-    ###############
-    ### TITULAR ###
-    ###############
+    # TITULAR
 
     print('Primeiro Titular')
     login.login(driver, agencia, conta, senha)
 
     nav_contas.nav_corrente(driver)
-    dados, dadosh = nav_contas.nav_extrato_baixar(driver, lista_meses, path_download)
+    dados, dadosh = nav_contas.nav_extrato_baixar(
+        driver, lista_meses, path_download
+    )
     base = pd.concat([base, dados], ignore_index=True)
     baseh = pd.concat([baseh, dadosh], ignore_index=True)
-    
+
     nav_contas.nav_poupanca(driver)
-    dados, dadosh = nav_contas.nav_extrato_baixar(driver, lista_meses, path_download)
+    dados, dadosh = nav_contas.nav_extrato_baixar(
+        driver, lista_meses, path_download
+    )
     base = pd.concat([base, dados], ignore_index=True)
     baseh = pd.concat([baseh, dadosh], ignore_index=True)
-    
+
     nav_cartao.nav_cartao(driver)
-    dados, dadosh = nav_cartao.nav_cartao_baixar(driver, lista_meses, path_download)
+    dados, dadosh = nav_cartao.nav_cartao_baixar(
+        driver, lista_meses, path_download
+    )
     base = pd.concat([base, dados], ignore_index=True)
     baseh = pd.concat([baseh, dadosh], ignore_index=True)
-    
-    ##########################
-    #### TROCA DE TITULAR ####
-    ##########################
+
+    # TROCA DE TITULAR
 
     if login.login_dependente(driver, '2º'):
         print('\nTROCA DE TITULAR')
 
         nav_cartao.nav_cartao(driver)
-        dados, dadosh = nav_cartao.nav_cartao_baixar(driver, lista_meses, path_download)
+        dados, dadosh = nav_cartao.nav_cartao_baixar(
+            driver, lista_meses, path_download
+        )
         base = pd.concat([base, dados], ignore_index=True)
         baseh = pd.concat([baseh, dadosh], ignore_index=True)
-            
-    ############
-    #### FIM ###
-    ############
+
+    # FIM
 
     driver.close()
     return base, baseh

@@ -1,11 +1,5 @@
-"""
-navega para a conta cartão
-- acessa os meses desejados
-- baixa o OFX
-- lê o OFX
-- formata em uma DataFrame
-- Retorna o DataFrame
-"""
+"""Navegação e download dos extratos de conta corrente e poupança."""
+
 import datetime as dt
 import time
 
@@ -16,12 +10,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from app.navegacao import funcoes
+from bbscrap.navegacao.lerofx import abre_le_arquivo_ofx
 
 
 def nav_cartao(driver):
-    """
-    Navega para a página dos extratos dos cartões
+    """Navega para a página dos extratos dos cartões.
+
     @param driver: driver da página Selenium
     """
     wdw = WebDriverWait(driver, 20)
@@ -44,7 +38,7 @@ def nav_cartao(driver):
 
     # subelemento
     locator = (By.XPATH, '//a[@codigo="32715"]')
-    barra_submenu =wdw.until(ec.element_to_be_clickable(locator))
+    barra_submenu = wdw.until(ec.element_to_be_clickable(locator))
     barra_submenu.click()
 
     # Espera a página carregar (até aparecer o header dos meses)
@@ -56,11 +50,11 @@ def nav_cartao(driver):
 
 
 def nav_cartao_baixar(driver, lista_meses, path_download):
-    """
-    Navega entre os meses de cada cartão de crédito disponível e faz o download e leitura do OFX
+    """Baixa os dados de cada fatura do cartão de crédito.
+
     @param driver: driver da página Selenium
     @param lista_meses: list. Lista com os meses desejados (formato mmm/yy)
-    @param path_download: caminho da pasta de download, para recuperar o OFX baixado.
+    @param path_download: caminho da pasta de download
     """
     wdw = WebDriverWait(driver, 20)
     agregados_header = pd.DataFrame({})
@@ -139,7 +133,7 @@ def nav_cartao_baixar(driver, lista_meses, path_download):
             tag.click()
 
             time.sleep(2)  # espera para o download começar
-            lista, lista_header = funcoes.ler_ofx(path_download)
+            lista, lista_header = abre_le_arquivo_ofx(path_download)
 
             # validacao
             if lista is None or lista.empty:
@@ -150,8 +144,10 @@ def nav_cartao_baixar(driver, lista_meses, path_download):
                 lista['mes_ref'] = headers_mes_nomes[index].lower()
                 lista_header['mes_ref'] = headers_mes_nomes[index].lower()
                 agregados = pd.concat([agregados, lista], ignore_index=True)
-                agregados_header = pd.concat([agregados_header, lista_header], ignore_index=True)
-                
+                agregados_header = pd.concat(
+                    [agregados_header, lista_header], ignore_index=True
+                )
+
             print(lista.iloc[0, 0])
 
     agregados_header['tipo_conta'] = 'Cartão'

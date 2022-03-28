@@ -1,20 +1,16 @@
-"""
-Funções de união de duas bases de dados pandas.dataFrame
-"""
+"""Funções de união de duas bases de dados pandas.dataFrame."""
 
 import pandas as pd
 
 
 def append_nao_duplicatas(base_a, base_b, col=None):
-    """
-    Une dois pandas.DataFrames, mantendo toda a tabela A e
-    adicionando os registros não duplicados da tabela B.
-    base_a: tabela base.
-    base_b: tabela a dar o append.
-    col: Lista. nome das colunas a considerar.
-    Return: pandas.DataFrame
-    """
+    """Mantem toda a tabela A e add os registros de B não duplicados.
 
+    @param base_a: tabela base.
+    @param base_b: tabela a dar o append.
+    @param col: Lista. nome das colunas a considerar.
+    return: pandas.DataFrame
+    """
     # inputs pd.dataFrames
     if (
         isinstance(base_a, pd.DataFrame) is False
