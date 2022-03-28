@@ -17,6 +17,7 @@ def abre_le_arquivo_ofx(path_download):
 
 def abre_arquivo_ofx(path_download):
     """Seleciona o arquivo que iremos que iremos ler."""
+    
     download_concluido(path_download)
 
     # lista todos arquivos com extensão OFX

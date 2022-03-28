@@ -17,11 +17,21 @@ def test_abre_arquivo_nao_existente():
     assert dados is None
 
 
-def test_abre_lerofx():
+def test_abre_lerofx_existe_ofx_no_path():
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     ofx_path = os.path.join(dir_path, 'auxiliar')
-    dados = lerofx.abre_arquivo_ofx(ofx_path)
 
+    dados = lerofx.abre_arquivo_ofx(ofx_path)
     ofx_table = lerofx.ler_ofx(dados)
     assert ofx_table is not None
+
+
+def test_abre_lerofx_nao_existe_ofx_no_path():
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    ofx_path = os.path.join(dir_path, '')
+
+    dados = lerofx.abre_arquivo_ofx(ofx_path)
+    ofx_table = lerofx.ler_ofx(dados)
+    assert ofx_table is None
