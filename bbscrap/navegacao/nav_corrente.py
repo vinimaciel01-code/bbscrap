@@ -2,7 +2,6 @@
 
 import datetime as dt
 import time
-import os
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
@@ -22,7 +21,7 @@ def navega_pagina(driver):
     wdw = WebDriverWait(driver, 20)
 
     # navegacao
-    locator = (By.XPATH, '//a[@codigo="32454"]')
+    locator = (By.XPATH, '//a[@codigo="32589"]')
     element = wdw.until(ec.element_to_be_clickable(locator))
     tentativas = 0
     while tentativas <= 2:
@@ -39,7 +38,7 @@ def navega_pagina(driver):
             continue
 
     # subelemento
-    locator = (By.XPATH, '//a[@codigo="32456"]')
+    locator = (By.XPATH, '//a[@codigo="32779"]')
     wdw.until(ec.element_to_be_clickable(locator)).click()
 
     # Espera a página carregar (até aparecer o header dos meses)
@@ -58,8 +57,8 @@ def baixa_extrato(driver, lista_meses, path_download):
     @param path_download: caminho da pasta de download.
     """
     wdw = WebDriverWait(driver, 20)
-    header = pd.DataFrame({})
     corpo = pd.DataFrame({})
+    header = pd.DataFrame({})
 
     # tratamento inicial
     lista_meses = [x.lower() for x in lista_meses]
@@ -95,9 +94,8 @@ def baixa_extrato(driver, lista_meses, path_download):
         # coloca o mes desejado em display
         meses_navega_ate_display(driver, tag, nome)
 
-        # Apenas para o mes atual: acessar pela seleção da combobox
-        # Após clicar na tag, ele abrirá uma caixa de seleção
-        # Irei clicar na primeira (mes inteiro)
+        # Seleciona o extrato do mes desejados
+        # Para mes corrente: combobox >> abrir seleção >> clica na primeira opção (mes inteiro)
         if index == len(header_lis) - 2:
             xpath = '//span[@class="custom-combobox"]//a[@tabindex="-1"]'
             locator = (By.XPATH, xpath)
@@ -138,23 +136,21 @@ def baixa_extrato(driver, lista_meses, path_download):
         if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:
             raise Exception('Erro: data do extrato diferente do mês de referência')
 
-        print(lista.iloc[0, 0])
-
         # grava o mes
         lista_header['mes_ref'] = nome.lower()
         lista['mes_ref'] = nome.lower()
 
         # grava a variacao
-        lista_header['tipo_conta'] = ['Poupança' if x != ''
-                                      else 'Conta Corrente'
+        lista_header['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
                                       for x in lista_header['variacao']]
-        lista['tipo_conta'] = ['Poupança' if x != ''
-                               else 'Conta Corrente'
+        lista['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
                                for x in lista['variacao']]
 
         # grava no acumulado
         corpo = pd.concat([corpo, lista], ignore_index=True)
         header = pd.concat([header, lista_header], ignore_index=True)
+
+        print(lista.iloc[0, 0])
 
     return corpo, header
 
@@ -194,7 +190,14 @@ def meses_links(header_lis):
 
 
 def meses_navega_ate_display(driver, tag, nome):
+    """
+    Coloca em Display o mês do extrato desejado.
 
+    Move a partir das setas laterais
+    @param driver: driver do navegador
+    @param tag link selenium do extrato
+    @param nome: nome do mês do extrato (mmm/aa)
+    """
     if tag.get_attribute('style') == 'display: none;':
 
         # Primeiro mes em display

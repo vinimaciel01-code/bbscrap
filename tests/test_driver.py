@@ -1,6 +1,6 @@
 from selenium.webdriver.common.by import By
 
-import bbscrap.navegacao.chrome_driver as chrome_driver
+import bbscrap.navegacao.drivers as chrome_driver
 import bbscrap.navegacao.nav_pagina as navega_pagina
 
 

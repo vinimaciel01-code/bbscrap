@@ -2,7 +2,6 @@
 
 import datetime as dt
 import time
-import os
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
@@ -14,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from bbscrap.navegacao.lerofx import abre_le_arquivo_ofx
 
 
-def nav_corrente(driver):
+def navega_pagina(driver):
     """Navega para a página de extrato da conta corrente.
 
     @param driver: driver da página Selenium
@@ -50,43 +49,7 @@ def nav_corrente(driver):
         pass
 
 
-def nav_poupanca(driver):
-    """Navega para a página de extrato da poupança.
-
-    @param driver: driver da página Selenium
-    """
-    wdw = WebDriverWait(driver, 20)
-
-    # navegacao
-    locator = (By.XPATH, '//a[@codigo="32589"]')
-    element = wdw.until(ec.element_to_be_clickable(locator))
-    tentativas = 0
-    while tentativas <= 2:
-        tentativas = tentativas + 1
-        try:
-            parent = element.find_element(By.XPATH, '..')
-            parent.click()
-            parent2 = parent.find_element(By.XPATH, '..')
-            parent2.click()
-            element.click()
-            break
-        except:
-            time.sleep(1)
-            continue
-
-    # subelemento
-    locator = (By.XPATH, '//a[@codigo="32779"]')
-    wdw.until(ec.element_to_be_clickable(locator)).click()
-
-    # Espera a página carregar (até aparecer o header dos meses)
-    locator = (By.XPATH, '//*[@id="tabs"]/ul')
-    try:
-        wdw.until(ec.element_to_be_clickable(locator))
-    except:
-        pass
-
-
-def nav_extrato_baixar(driver, lista_meses, path_download):
+def baixa_extrato(driver, lista_meses, path_download):
     """Baixa o extratos da conta corrente ou poupança.
 
     @param driver: driver da página Selenium
@@ -94,8 +57,8 @@ def nav_extrato_baixar(driver, lista_meses, path_download):
     @param path_download: caminho da pasta de download.
     """
     wdw = WebDriverWait(driver, 20)
-    agregados_header = pd.DataFrame({})
-    agregados = pd.DataFrame({})
+    corpo = pd.DataFrame({})
+    header = pd.DataFrame({})
 
     # tratamento inicial
     lista_meses = [x.lower() for x in lista_meses]
@@ -120,60 +83,19 @@ def nav_extrato_baixar(driver, lista_meses, path_download):
     header_nomes = meses_links(header_lis)
 
     # Navega para o mes e download
-    for index, value in enumerate(header_nomes):
-        
-        # temp
-        index = 60
-        value = header_nomes[index]
+    for index, nome in enumerate(header_nomes):
 
+        if nome not in lista_meses:
+            continue
 
-        
+        print(f'\n{nome}')
         tag = header_lis[index]
 
-        # pula os meses não desejados
-        if value not in lista_meses:
-            continue
-        
-        print(f'\n{value}')
+        # coloca o mes desejado em display
+        meses_navega_ate_display(driver, tag, nome)
 
-        # movimenta entre as paginas de meses, até encontrar o mes desejado
-        if tag.get_attribute('style') == 'display: none;':
-
-            xpath = '//li[@aria-controls="divResultadoExtrato" and @style="display: list-item;"]'
-            locator = (By.XPATH, xpath)
-            temp_tags = driver.find_element(*locator)
-
-            temp_atr = temp_tags.get_attribute('mes')
-            temp_atual = temp_atr
-            if len(temp_atual) > 6:
-                temp_atual = temp_atual[-4:] + temp_atual[-6:-4]   # corrente
-            temp_atual = dt.datetime.strptime(temp_atual, '%Y%m').date()
-
-            temp_desejo = dt.datetime.strptime(value, '%b/%y').date()
-
-            # caminha esquerda
-            if temp_desejo < temp_atual:
-                xpath = '//li[contains(@class, "ui-tabs-paging-prev")]/a'
-                locator = (By.XPATH, xpath)
-                seta_esq = driver.find_element(*locator)
-                while True:
-                    seta_esq.click()
-                    if tag.get_attribute('style') != 'display: none;':
-                        break
-
-            # caminha direita
-            else:
-                xpath = '//li[contains(@class, "ui-tabs-paging-next")]/a'
-                locator = (By.XPATH, xpath)
-                seta_dir = driver.find_element(*locator)
-                while True:
-                    seta_dir.click()
-                    if tag.get_attribute('style') != 'display: none;':
-                        break
-
-        # Apenas para o mes atual: acessar pela seleção da combobox
-        # Após clicar na tag, ele abrirá uma caixa de seleção
-        # Irei clicar na primeira (mes inteiro)
+        # Seleciona o extrato do mes desejados
+        # Para mes corrente: combobox >> abrir seleção >> clica na primeira opção (mes inteiro)
         if index == len(header_lis) - 2:
             xpath = '//span[@class="custom-combobox"]//a[@tabindex="-1"]'
             locator = (By.XPATH, xpath)
@@ -187,8 +109,6 @@ def nav_extrato_baixar(driver, lista_meses, path_download):
         tag.click()
 
         # wait: tabela de valores aparecer
-        # Verificar se dará problema apenas com este id
-        # corrente subdivide para tabela e poupanca para div
         locator = (By.XPATH, '//div[@id="divResultadoExtrato"]')
         wdw.until(ec.element_to_be_clickable(locator))
 
@@ -213,47 +133,41 @@ def nav_extrato_baixar(driver, lista_meses, path_download):
             continue
 
         # validacao
-        if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y') != value:
-            raise Exception(
-                'Erro: data do extrato diferente do mês de referência'
-            )
+        if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:
+            raise Exception('Erro: data do extrato diferente do mês de referência')
 
-        # controle
         print(lista.iloc[0, 0])
 
-        # salva
-        lista_header['mes_ref'] = value.lower()
-        lista['mes_ref'] = value.lower()
-        agregados = pd.concat([agregados, lista], ignore_index=True)
-        agregados_header = pd.concat(
-            [agregados_header, lista_header], ignore_index=True
-        )
+        # grava o mes
+        lista_header['mes_ref'] = nome.lower()
+        lista['mes_ref'] = nome.lower()
 
-    agregados_header['tipo_conta'] = [
-        'Poupança' if x != '' else 'Conta Corrente'
-        for x in agregados_header['variacao']
-    ]
-    agregados['tipo_conta'] = [
-        'Poupança' if x != '' else 'Conta Corrente'
-        for x in agregados['variacao']
-    ]
+        # grava a variacao
+        lista_header['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
+                                      for x in lista_header['variacao']]
+        lista['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
+                               for x in lista['variacao']]
 
-    return agregados, agregados_header
+        # grava no acumulado
+        corpo = pd.concat([corpo, lista], ignore_index=True)
+        header = pd.concat([header, lista_header], ignore_index=True)
+
+    return corpo, header
 
 
 def meses_links(header_lis):
     """Pega o html dos links dos meses e retorna lista de meses."""
     # meses de todos links
     header_nomes = ['' for x in header_lis]
-    for index, value in enumerate(header_nomes):
+    for index, nome in enumerate(header_nomes):
         temp_mes = ''
         # especial: pula o ext dos ultimos 30 dias
         if index == len(header_nomes) - 1:
             pass
         # especial: nome do mes atual (anterior + 1month)
         elif index == len(header_nomes) - 2:
-            value = header_lis[index - 1]
-            temp_atr = value.get_attribute('mes')
+            nome = header_lis[index - 1]
+            temp_atr = nome.get_attribute('mes')
             temp_mes = temp_atr
             if len(temp_mes) > 6:   # corrente
                 temp_mes = temp_mes[-4:] + temp_mes[-6:-4]
@@ -262,8 +176,8 @@ def meses_links(header_lis):
             temp_mes = dt.datetime.strftime(temp_mes, '%b/%y')
         # normal
         else:
-            value = header_lis[index]
-            temp_atr = value.get_attribute('mes')
+            nome = header_lis[index]
+            temp_atr = nome.get_attribute('mes')
             temp_mes = temp_atr
             if len(temp_mes) > 6:   # corrente
                 temp_mes = temp_mes[-4:] + temp_mes[-6:-4]
@@ -273,3 +187,43 @@ def meses_links(header_lis):
         header_nomes[index] = temp_mes.lower()
 
     return header_nomes
+
+
+def meses_navega_ate_display(driver, tag, nome):
+    """
+    Coloca em Display o mês do extrato desejado.
+
+    Move a partir das setas laterais
+    @param driver: driver do navegador
+    @param tag link selenium do extrato
+    @param nome: nome do mês do extrato (mmm/aa)
+    """
+    if tag.get_attribute('style') == 'display: none;':
+
+        # Primeiro mes em display
+        xpath = '//li[@aria-controls="divResultadoExtrato" and @style="display: list-item;"]'
+        locator = (By.XPATH, xpath)
+        display = driver.find_element(*locator)
+        display_esq = display.get_attribute('mes')
+        display_esq = dt.datetime.strptime(display_esq, '%Y%m').date()
+        temp_desejo = dt.datetime.strptime(nome, '%b/%y').date()
+
+        # caminha esquerda
+        if temp_desejo < display_esq:
+            xpath = '//li[contains(@class, "ui-tabs-paging-prev")]/a'
+            locator = (By.XPATH, xpath)
+            seta_esq = driver.find_element(*locator)
+            while True:
+                seta_esq.click()
+                if tag.get_attribute('style') != 'display: none;':
+                    break
+
+        # caminha direita
+        else:
+            xpath = '//li[contains(@class, "ui-tabs-paging-next")]/a'
+            locator = (By.XPATH, xpath)
+            seta_dir = driver.find_element(*locator)
+            while True:
+                seta_dir.click()
+                if tag.get_attribute('style') != 'display: none;':
+                    break
