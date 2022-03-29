@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "bb-webscrapp"
+name = "bbscrap"
 version = "0.1.0"
 description = "Baixa extatos bancários do Banco do Brasil"
 authors = ["Vinicius Maciel"]
