@@ -31,6 +31,7 @@ corpo, header = acesso_bb(path_download, dt1=None,
                           outros_titulares=None, 
                           block_print=True)
 `
+
 Sendo que: 
 - path_download: caminho completo da pasta de downloads (ex: c:/user/fulan/downloads)
 - agencia: número da agência (com DV, sem traço)
