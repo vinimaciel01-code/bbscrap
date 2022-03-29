@@ -37,4 +37,4 @@ def test_cartao_baixa_mes_existe_path_download_errado(driver):
     path = r'C:\Users\vinim\Downloads\Nova pasta'
     nav_cartao.navega_pagina(driver)
     corpo, header = nav_cartao.baixa_extrato(driver, ['jan/22'], path)
-    assert not corpo.empty
+    assert corpo.empty

@@ -34,4 +34,4 @@ def test_abre_lerofx_nao_existe_ofx_no_path():
 
     dados = lerofx.abre_arquivo_ofx(ofx_path)
     ofx_table = lerofx.ler_ofx(dados)
-    assert ofx_table is None
+    assert ofx_table == (None, None)

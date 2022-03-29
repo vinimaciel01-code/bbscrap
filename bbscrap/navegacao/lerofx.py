@@ -10,6 +10,7 @@ from bbscrap.utils.arquivo import download_concluido
 def abre_le_arquivo_ofx(path_download):
     """Junta os dois procedimentos abaixo."""
     dados = abre_arquivo_ofx(path_download)
+
     ofx_header, ofx_dados = ler_ofx(dados)
 
     return ofx_header, ofx_dados
@@ -25,18 +26,22 @@ def abre_arquivo_ofx(path_download):
     pasta_baixados = [d for d in pasta_baixados if '.ofx' in d]
     if pasta_baixados == []:
         return None
-
+    
     # seleciona o OFX mais novo
     pasta_baixados = [os.path.join(path_download, d) for d in pasta_baixados]
     arquivo_novato = max(pasta_baixados, key=os.path.getctime)
-
+    
     dados = open(arquivo_novato)
-
+    
     return dados
 
 
 def ler_ofx(dados):
     """Lê o arquivo ofx recebido."""
+
+    if not dados:
+        return None, None
+
     # le o arquivo recebido
     try:
         ofx = OfxParser.parse(dados)

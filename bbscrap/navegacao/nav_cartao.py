@@ -53,6 +53,9 @@ def baixa_extrato(driver, lista_meses, path_download):
     header = pd.DataFrame({})
     corpo = pd.DataFrame({})
 
+    # tratamento inicial
+    lista_meses = [x.lower() for x in lista_meses]
+
     # testa se existe uma conta cadastrada (se nao existir, retorna dataframes vazios)
     locator = (By.XPATH, '//*[@id="cxErro"]')
     element = driver.find_elements(*locator)
@@ -62,7 +65,7 @@ def baixa_extrato(driver, lista_meses, path_download):
 
     # loop nas imagens de cartoes (que se mantém no topo e n some)
     locator = (By.ID, 'carousel-cartoes')
-    cartoes = driver.find_element(*locator)
+    cartoes = wdw.until(ec.presence_of_element_located(locator))
     cartoes = cartoes.find_elements(By.TAG_NAME, 'img')
 
     for cartao in cartoes:
@@ -87,13 +90,13 @@ def baixa_extrato(driver, lista_meses, path_download):
         locator = (By.ID, 'tabs-cartao')
         headers_mes_tags = driver.find_element(*locator)
         headers_mes_tags = headers_mes_tags.find_elements(By.TAG_NAME, 'a')
-        headers_mes_nomes = [x.text for x in headers_mes_tags]
+        headers_mes_nomes = [x.text.lower() for x in headers_mes_tags]
 
         # add proximo mes como mmm/aa
         prox_mes = dt.datetime.strptime(headers_mes_nomes[-2], '%b/%y')
         prox_mes = prox_mes + relativedelta(months=1)
-        prox_mes = prox_mes.strftime('%b/%y').capitalize()
-        headers_mes_nomes[headers_mes_nomes.index('Próxima Fatura')] = prox_mes
+        prox_mes = prox_mes.strftime('%b/%y')
+        headers_mes_nomes[headers_mes_nomes.index('próxima fatura')] = prox_mes
 
         # loop em todos os meses (se na lista)
         for index, nome in enumerate(headers_mes_tags):
@@ -128,8 +131,10 @@ def baixa_extrato(driver, lista_meses, path_download):
             element.click()
 
             time.sleep(2)  # espera para o download começar
+            print('abrelearquivo')
             lista, lista_header = abre_le_arquivo_ofx(path_download)
-
+            print('passou pelo abrelearquivo')
+            
             # validacao
             if lista is None or lista.empty:
                 continue

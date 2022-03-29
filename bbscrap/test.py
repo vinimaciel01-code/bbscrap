@@ -11,13 +11,13 @@ navega_pagina.navega_pagina(driver)
 login.login_banco(driver, config.agencia, config.conta, config.senha)
 
 lista_meses = ['jan/22']
-path_download = r'C:\Users\vinim\Downloads'
+path_download = r'C:\Users\vinim\Downloads\Nova pasta'
+
+nav_cartao.navega_pagina(driver)
+dados = nav_cartao.baixa_extrato(driver, lista_meses, path_download)
 
 nav_corrente.navega_pagina(driver)
 dados = nav_corrente.baixa_extrato(driver, lista_meses, config.path_download)
 
 nav_poupanca.navega_pagina(driver)
 dados = nav_poupanca.baixa_extrato(driver, lista_meses, config.path_download)
-
-nav_cartao.navega_pagina(driver)
-dados = nav_cartao.baixa_extrato(driver, lista_meses, config.path_download)

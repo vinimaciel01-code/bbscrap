@@ -15,29 +15,29 @@ def test_navega_pagina_poupanca(driver):
     assert tag.text == 'Poupança'
 
 
-def test_poupanca_baixa_mes_janeiro_22_minuscula(driver):
+def test_poupanca_baixa_mes_janeiro_22_minuscula_ofx_existe(driver):
     nav_poupanca.navega_pagina(driver)
     corpo, header = nav_poupanca.baixa_extrato(driver, ['jan/22'], config.path_download)
     assert not corpo.empty
 
 
-def test_poupanca_baixa_mes_janeiro_22_maiuscula(driver):
+def test_poupanca_baixa_mes_janeiro_22_maiuscula_ofx_existe(driver):
     nav_poupanca.navega_pagina(driver)
     corpo, header = nav_poupanca.baixa_extrato(driver, ['JAN/22'], config.path_download)
     assert not corpo.empty
 
 
-def test_poupanca_baixa_nome_errado(driver):
+def test_poupanca_baixa_nome_errado_ofx_vazio(driver):
     nav_poupanca.navega_pagina(driver)
     corpo, header = nav_poupanca.baixa_extrato(driver, ['batata'], config.path_download)
     assert corpo.empty
 
 
-def test_poupanca_baixa_mes_existe_path_download_errado(driver):
+def test_poupanca_baixa_mes_existe_path_download_errado_ofx_vazio(driver):
     path = r'C:\Users\vinim\Downloads\Nova pasta'
     nav_poupanca.navega_pagina(driver)
     corpo, header = nav_poupanca.baixa_extrato(driver, ['jan/22'], path)
-    assert not corpo.empty
+    assert corpo.empty
 
 # def test_poupanca_baixa_extrato_mais_atual():
 #     pass

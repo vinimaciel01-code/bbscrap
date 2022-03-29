@@ -3,12 +3,17 @@
 import time
 from pathlib import Path
 
+directory = r'C:\Users\vinim\Downloads\Nova pasta'
+temp_folder = directory
 
 def download_concluido(directory):
     """Espera downloads serem concluídos."""
     dl_wait = True
+    count=0
     while dl_wait:
         time.sleep(1)
+        count = count+1
+        print(count)
         dl_wait = False
         if is_download_finished(directory) is False:
             dl_wait = True
@@ -16,14 +21,14 @@ def download_concluido(directory):
 
 def is_download_finished(temp_folder):
     """Diz se existe download em andamento."""
+    all_files = sorted(Path(temp_folder).glob('*.*'))
     firefox_temp_file = sorted(Path(temp_folder).glob('*.part'))
     chrome_temp_file = sorted(Path(temp_folder).glob('*.crdownload'))
-    downloaded_files = sorted(Path(temp_folder).glob('*.*'))
-    if (
-        (len(firefox_temp_file) == 0)
-        and (len(chrome_temp_file) == 0)
-        and (len(downloaded_files) >= 1)
-    ):
+    
+    if all_files == 0:
+        return True
+
+    if len(firefox_temp_file) == 0 and len(chrome_temp_file) == 0:
         return True
 
     return False

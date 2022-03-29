@@ -21,7 +21,7 @@ def navega_pagina(driver):
     wdw = WebDriverWait(driver, 20)
 
     # navegacao
-    locator = (By.XPATH, '//a[@codigo="32454"]')
+    locator = (By.XPATH, '//a[@codigo="32589"]')
     element = wdw.until(ec.element_to_be_clickable(locator))
     tentativas = 0
     while tentativas <= 2:
@@ -38,7 +38,7 @@ def navega_pagina(driver):
             continue
 
     # subelemento
-    locator = (By.XPATH, '//a[@codigo="32456"]')
+    locator = (By.XPATH, '//a[@codigo="32779"]')
     wdw.until(ec.element_to_be_clickable(locator)).click()
 
     # Espera a página carregar (até aparecer o header dos meses)

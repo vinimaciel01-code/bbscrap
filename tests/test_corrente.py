@@ -15,31 +15,26 @@ def test_navega_pagina_conta_corrente(driver):
     assert tag.text == 'Conta corrente'
 
 
-def test_corrente_baixa_mes_janeiro_22_minuscula(driver):
+def test_corrente_baixa_mes_janeiro_22_minuscula_ofx_existe(driver):
     nav_corrente.navega_pagina(driver)
     corpo, header = nav_corrente.baixa_extrato(driver, ['jan/22'], config.path_download)
     assert not corpo.empty
 
 
-def test_corrente_baixa_mes_janeiro_22_maiuscula(driver):
+def test_corrente_baixa_mes_janeiro_22_maiuscula_ofx_existe(driver):
     nav_corrente.navega_pagina(driver)
     corpo, header = nav_corrente.baixa_extrato(driver, ['JAN/22'], config.path_download)
     assert not corpo.empty
 
 
-def test_corrente_baixa_nome_errado(driver):
+def test_corrente_baixa_nome_errado_ofx_vazio(driver):
     nav_corrente.navega_pagina(driver)
     corpo, header = nav_corrente.baixa_extrato(driver, ['batata'], config.path_download)
     assert corpo.empty
 
 
-def test_corrente_baixa_mes_existe_path_download_errado(driver):
+def test_corrente_baixa_mes_existe_path_download_errado_ofx_vazio(driver):
     path = r'C:\Users\vinim\Downloads\Nova pasta'
     nav_corrente.navega_pagina(driver)
     corpo, header = nav_corrente.baixa_extrato(driver, ['jan/22'], path)
-    assert not corpo.empty
-
-# def test_corrente_baixa_extrato_mais_atual():
-#     pass
-#
-#
+    assert corpo.empty
