@@ -12,8 +12,6 @@ def download_concluido(directory):
     count=0
     while dl_wait:
         time.sleep(1)
-        count = count+1
-        print(count)
         dl_wait = False
         if is_download_finished(directory) is False:
             dl_wait = True

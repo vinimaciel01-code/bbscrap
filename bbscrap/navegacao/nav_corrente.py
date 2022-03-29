@@ -83,12 +83,13 @@ def baixa_extrato(driver, lista_meses, path_download):
     header_nomes = meses_links(header_lis)
 
     # Navega para o mes e download
+    print('\nConta Corrente')
     for index, nome in enumerate(header_nomes):
 
         if nome not in lista_meses:
             continue
 
-        print(f'\n{nome}')
+        print('\nMês:', nome)
         tag = header_lis[index]
 
         # coloca o mes desejado em display
@@ -129,7 +130,7 @@ def baixa_extrato(driver, lista_meses, path_download):
 
         # validacao
         if lista is None or lista.empty:
-            print('lista vazia')
+            print('aquivo OFX vazio.')
             continue
 
         # validacao
@@ -150,7 +151,7 @@ def baixa_extrato(driver, lista_meses, path_download):
         corpo = pd.concat([corpo, lista], ignore_index=True)
         header = pd.concat([header, lista_header], ignore_index=True)
 
-        print(lista.iloc[0, 0])
+        print("Data mín:", lista.iloc[0, 0])
 
     return corpo, header
 

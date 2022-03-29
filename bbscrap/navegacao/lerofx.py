@@ -53,9 +53,9 @@ def ler_ofx(dados):
     account = ofx.account
     statement = account.statement
     lista_header = pd.DataFrame({})
-    lista_header['conta'] = [account.account_id]
-    lista_header['agencia'] = [account.branch_id]
     lista_header['banco'] = [account.institution.fid]
+    lista_header['agencia'] = [account.branch_id]
+    lista_header['conta'] = [account.account_id]
     lista_header['dt_inicio'] = [statement.start_date]
     lista_header['dt_fim'] = [statement.end_date]
     lista_header['saldo'] = [statement.balance]

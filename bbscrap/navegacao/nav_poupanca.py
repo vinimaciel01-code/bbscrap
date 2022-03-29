@@ -83,12 +83,13 @@ def baixa_extrato(driver, lista_meses, path_download):
     header_nomes = meses_links(header_lis)
 
     # Navega para o mes e download
+    print('\nConta Poupança')
     for index, nome in enumerate(header_nomes):
 
         if nome not in lista_meses:
             continue
 
-        print(f'\n{nome}')
+        print('\nMês:', nome)
         tag = header_lis[index]
 
         # coloca o mes desejado em display
@@ -136,7 +137,7 @@ def baixa_extrato(driver, lista_meses, path_download):
         if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:
             raise Exception('Erro: data do extrato diferente do mês de referência')
 
-        print(lista.iloc[0, 0])
+        print("Data mín:", lista.iloc[0, 0])
 
         # grava o mes
         lista_header['mes_ref'] = nome.lower()

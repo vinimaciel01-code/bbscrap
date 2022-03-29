@@ -68,6 +68,7 @@ def baixa_extrato(driver, lista_meses, path_download):
     cartoes = wdw.until(ec.presence_of_element_located(locator))
     cartoes = cartoes.find_elements(By.TAG_NAME, 'img')
 
+    print('\nCartão de crédito')
     for cartao in cartoes:
 
         print('\n- Cartão', cartao.get_attribute('funcao')[-3:-2])
@@ -106,7 +107,8 @@ def baixa_extrato(driver, lista_meses, path_download):
             # apenas meses desejados
             if headers_mes_nomes[index].lower() not in lista_meses:
                 continue
-            print(f'{headers_mes_nomes[index].lower()}')
+ 
+            print('\nFatura:',headers_mes_nomes[index].lower())
 
             # muda para o mes
             meses_navega_ate_display(driver, tag, nome)
@@ -131,9 +133,7 @@ def baixa_extrato(driver, lista_meses, path_download):
             element.click()
 
             time.sleep(2)  # espera para o download começar
-            print('abrelearquivo')
             lista, lista_header = abre_le_arquivo_ofx(path_download)
-            print('passou pelo abrelearquivo')
             
             # validacao
             if lista is None or lista.empty:
@@ -155,7 +155,7 @@ def baixa_extrato(driver, lista_meses, path_download):
             corpo = pd.concat([corpo, lista], ignore_index=True)
             header = pd.concat([header, lista_header], ignore_index=True)
 
-            print(lista.iloc[0, 0])
+            print('Data mín:',lista.iloc[0, 0])
 
     return corpo, header
 
