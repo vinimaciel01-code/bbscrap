@@ -19,11 +19,12 @@ Existem duas limitações:
 `poetry install bbscrap` 
 
 ## Como usar
+O programa abre o navegador, acessa a conta bancária e baixa os extratos. A senha pode ser informada ou o login pode ser manual (o programa continua a funcionar após o login ser realiado). A senha pedida é de 8 digitos, que permite apenas acesso de visualização à conta. 
 
-O programa abre o navegador, acessa a conta bancária e baixa os extratos. A senha pedida é a senha de 8 digitos de acesso à conta (possui apenas permissão de visaulização, portanto, é impossível fazer modificações na conta). 
+A função então retorna duas base de dados
+- corpo: dados dos extratos baixados. 
+- header: dados de cabeçalho de todos extratos (datas de inicio e fim das transações, saldo, entre outros).
 
-A função então retorna duas base de dados, a primeira com os dados dos extratos e o segundo dados de cabeçalho (totais, datas, etc.).
-
-Em app.main, rode função acesso_bb:
-
-`dados, dados_header = acesso_bb(path_download='c:downloads', agencia='123456', conta='1212123', senha='batata123')`
+`
+corpo, header = acesso_bb(path_download, dt1=None, agencia=None, conta=None, senha=None, outros_titulares=None, block_print=True)
+`
