@@ -26,5 +26,15 @@ A função então retorna duas base de dados
 - header: dados de cabeçalho de todos extratos (datas de inicio e fim das transações, saldo, entre outros).
 
 `
-corpo, header = acesso_bb(path_download, dt1=None, agencia=None, conta=None, senha=None, outros_titulares=None, block_print=True)
+corpo, header = acesso_bb(path_download, dt1=None, 
+                          agencia=None, conta=None, senha=None, 
+                          outros_titulares=None, 
+                          block_print=True)
 `
+Sendo que: 
+- path_download: caminho completo da pasta de downloads (ex: c:/user/fulan/downloads)
+- agencia: número da agência (com DV, sem traço)
+- conta: numero da conta (com DV, sem traço)
+- senha: senha de 8 dígitos da conta
+- dt1: data de início da procura de dados. 
+- outros_titulares: lista de nomes bancários dos outros titulares. Nome parcial é permitido. Apenas cartões de crédito.
