@@ -41,8 +41,8 @@ def navega_pagina(driver):
     locator = (By.XPATH, '//a[@codigo="32779"]')
     wdw.until(ec.element_to_be_clickable(locator)).click()
 
-    # Espera a página carregar (até aparecer o header dos meses)
-    locator = (By.XPATH, '//*[@id="tabs"]/ul')
+    # Espera a página carregar
+    locator = (By.XPATH, '//li[@class="containerExtrato"]')
     try:
         wdw.until(ec.element_to_be_clickable(locator))
     except:
@@ -67,7 +67,7 @@ def baixa_extrato(driver, lista_meses, path_download):
     locator = (By.XPATH, '//*[@id="cxErro"]')
     element = driver.find_elements(*locator)
     if element:
-        print('conta extrato inexistente')
+        print('Conta de poupança inexistente.')
         return pd.DataFrame(), pd.DataFrame()
 
     # mes atual

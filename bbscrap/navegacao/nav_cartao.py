@@ -41,6 +41,13 @@ def navega_pagina(driver):
     barra_submenu = wdw.until(ec.element_to_be_clickable(locator))
     barra_submenu.click()
 
+    # Espera a página carregar
+    locator = (By.XPATH, '//li[@class="containerExtrato"]')
+    try:
+        wdw.until(ec.element_to_be_clickable(locator))
+    except:
+        pass
+
 
 def baixa_extrato(driver, lista_meses, path_download):
     """Baixa os extratos dos cartões de crédito.
@@ -60,7 +67,7 @@ def baixa_extrato(driver, lista_meses, path_download):
     locator = (By.XPATH, '//*[@id="cxErro"]')
     element = driver.find_elements(*locator)
     if element:
-        print('Não há cartoes para este cliente')
+        print('Não há cartoes para este cliente.')
         return pd.DataFrame(), pd.DataFrame()
 
     # loop nas imagens de cartoes (que se mantém no topo e n some)

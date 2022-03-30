@@ -96,9 +96,3 @@ def ler_ofx(dados):
     lista['variacao'] = lista_header['variacao'][0]
 
     return lista, lista_header
-
-
-if __name__ == '__main__':
-
-    path_download = r'C:\Users\vinim\Downloads'
-    ler_ofx(path_download)
