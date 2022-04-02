@@ -47,7 +47,7 @@ def ler_ofx(dados):
         ofx = OfxParser.parse(dados)
     except:
         print('Arquivo vazio.')
-        return None
+        return None, None
 
     # le os dados de cabeçalho
     account = ofx.account
