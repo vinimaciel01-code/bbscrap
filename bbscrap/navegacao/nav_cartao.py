@@ -23,9 +23,8 @@ def navega_pagina(driver):
     # navegacao
     locator = (By.XPATH, '//a[@codigo="32578"]')
     barra_menu = wdw.until(ec.element_to_be_clickable(locator))
-    tentativas = 0  # para corrigir uma falha no click
-    while tentativas <= 2:
-        tentativas = tentativas + 1
+
+    for _ in range(0, 2):
         try:
             parent = barra_menu.find_element(By.XPATH, '..')
             parent.click()
@@ -82,17 +81,15 @@ def baixa_extrato(driver, lista_meses, path_download):
 
         # espera a img dos cartoes estar carregada
         locator = (By.XPATH, '//*[@id="carousel-cartoes"]/img[1]')
-        while True:
-            try:
-                wdw.until(ec.element_to_be_clickable(locator))
-                break
-            except:
-                locator = (By.ID, 'carousel-cartoes')
-                driver.find_element(*locator)
+        wdw.until(ec.element_to_be_clickable(locator))
 
         # clica no cartão
         cartao.click()
-        time.sleep(3)
+
+        # espera a tabela do cartao estar carregada
+        locator = (By.XPATH, '//*[contains(text(), "Próxima Fatura")]')
+        wdw.until(ec.presence_of_element_located(locator))
+        time.sleep(2)
 
         # meses de todos os links das abas
         locator = (By.ID, 'tabs-cartao')
@@ -114,17 +111,16 @@ def baixa_extrato(driver, lista_meses, path_download):
             # apenas meses desejados
             if headers_mes_nomes[index].lower() not in lista_meses:
                 continue
- 
-            print('\nFatura:',headers_mes_nomes[index].lower())
+
+            print('\nFatura:', headers_mes_nomes[index].lower())
 
             # muda para o mes
             meses_navega_ate_display(driver, tag, nome)
             tag.click()
 
             # espera o mes carregar (por algum motivo n funciona, logo, sleep)
-            locator = (By.XPATH, '//div[@id="tab-conteudo"]//table')
-            wdw.until(ec.presence_of_element_located(locator))
-            time.sleep(3)
+            locator = (By.XPATH, '//*[contains(text(), "Resumo da sua fatura")]')
+            wdw.until(ec.presence_of_all_elements_located(locator))
 
             # baixa e le o arquivo
             locator = (By.XPATH, '//a[@title="Salvar Fatura"]')
@@ -141,7 +137,7 @@ def baixa_extrato(driver, lista_meses, path_download):
 
             time.sleep(2)  # espera para o download começar
             lista, lista_header = abre_le_arquivo_ofx(path_download)
-            
+
             # validacao
             if lista is None or lista.empty:
                 continue
@@ -162,7 +158,7 @@ def baixa_extrato(driver, lista_meses, path_download):
             corpo = pd.concat([corpo, lista], ignore_index=True)
             header = pd.concat([header, lista_header], ignore_index=True)
 
-            print('Data mín:',lista.iloc[0, 0])
+            print('Data mín:', lista.iloc[0, 0])
 
     return corpo, header
 

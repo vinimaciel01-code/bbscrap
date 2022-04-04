@@ -46,7 +46,7 @@ def acesso_bb(path_download, dt1=None,
     # datas
     dt2 = dt.datetime.today()
     dt1 = converte_datetime(dt1)
-    if dt1 == None or dt1 > dt2:
+    if dt1 is None or dt1 > dt2:
         dt1 = converte_datetime(dt2 - relativedelta(years=1))
     lista_meses = transforma_datas_lista(dt1, dt2)
 

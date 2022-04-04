@@ -6,7 +6,7 @@ import tests.config as config
 
 def test_login_com_senha(driver_sem_login):
 
-    login.login_banco(driver_sem_login, config.agencia, config.conta, config.senha)
+    login.login_banco(driver_sem_login, config.agencia1, config.conta1, config.senha1)
     locator = (By.XPATH, '//a[@title="Minha página"]')
     tags = driver_sem_login.find_elements(*locator)
 
@@ -15,7 +15,7 @@ def test_login_com_senha(driver_sem_login):
 
 def test_login_sem_senha(driver_sem_login):
 
-    login.login_banco(driver_sem_login, config.agencia, config.conta)
+    login.login_banco(driver_sem_login, config.agencia1, config.conta1)
     locator = (By.XPATH, '//a[@title="Minha página"]')
     tags = driver_sem_login.find_elements(*locator)
 
