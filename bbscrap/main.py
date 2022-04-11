@@ -11,21 +11,15 @@ import locale
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
-from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.ui import WebDriverWait
 
-from bbscrap.navegacao import drivers, nav_pagina, login, dependente, lerofx
+from bbscrap.navegacao import drivers, nav_pagina, login, dependente
 from bbscrap.navegacao import nav_corrente, nav_poupanca, nav_cartao
 from bbscrap.utils.data_functions import converte_datetime
 from bbscrap.utils.sistema import blockPrint, enablePrint
 
 
-def acesso_bb(path_download, dt1=None,
-              agencia=None, conta=None, senha=None,
-              outros_titulares=None, block_print=True):
+def acesso_bb(path_download, agencia=None, conta=None, senha=None,
+              dt1=None, outros_titulares=None, block_print=True):
     """Acessa o Banco do Brasil e baixa as informações requisitadas.
 
     @param path_download: caminho completo da pasta de downloads
@@ -77,7 +71,7 @@ def acesso_bb(path_download, dt1=None,
 
 
 def transforma_datas_lista(dt1, dt2):
-    
+
     lista_meses = pd.date_range(dt1, dt2, freq='MS').tolist()
     lista_meses = [x.strftime('%b/%y') for x in lista_meses]
     lista_meses = [x.lower() for x in lista_meses]
@@ -92,7 +86,7 @@ def transforma_datas_lista(dt1, dt2):
 
 
 def navega_todos_extratos(driver, lista_meses, path_download):
-    
+
     corpo_base = pd.DataFrame({})
     header_base = pd.DataFrame({})
 
