@@ -1,3 +1,4 @@
+import pandas as pd
 from argparse import ArgumentParser
 # from getpass import getpass
 
@@ -15,11 +16,12 @@ parser.add_argument('--conta', '-c', type=str,
                     help='Número da conta bancária')
 parser.add_argument('--senha', '-s', type=str,
                     help='Senha da conta')
-parser.add_argument('--data_inicial', '-dt', type=str,
+parser.add_argument('--data_inicial', '-d', type=str,
                     help='Data inicial para obter os extratos bancários.')
 parser.add_argument('--outros_titulares', '-o', type=str,
                     help='Lista dos titulares alternativos da conta. Nome parcial permitido.')
-
+parser.add_argument('--export', '-e', type=str, choices=['csv', 'xlsx'],
+                    help='Exportar para csv ou excel.')
 args = parser.parse_args()
 
 if not args.path:
@@ -29,5 +31,16 @@ if not args.path:
 # if not senha:
     # parser.exit(0, "Você não digitou a senha!\n")
 
-dados = main.acesso_bb(args.path, args.agencia, args.conta, args.senha,
-                       args.data_inicial, args.outros_titulares)
+dados, dados_h = main.acesso_bb(args.path, args.agencia, args.conta, args.senha,
+                                args.data_inicial, args.outros_titulares)
+
+if args.export == 'xlsx':
+
+    with pd.ExcelWriter('saida.xlsx', mode='w') as writer:
+        dados.to_excel(writer, index=False, float_format='%.2f', sheet_name='corpo')
+        dados_h.to_excel(writer, index=False, float_format='%.2f', sheet_name='header')
+
+if args.export == 'csv':
+
+    dados.to_csv('bb_dados_corpo.csv')
+    dados_h.to_csv('bb_dados_header.csv')
