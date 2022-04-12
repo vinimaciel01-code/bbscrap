@@ -18,7 +18,7 @@ def abre_le_arquivo_ofx(path_download):
 
 def abre_arquivo_ofx(path_download):
     """Seleciona o arquivo que iremos que iremos ler."""
-    
+
     download_concluido(path_download)
 
     # lista todos arquivos com extensão OFX
@@ -26,13 +26,13 @@ def abre_arquivo_ofx(path_download):
     pasta_baixados = [d for d in pasta_baixados if '.ofx' in d]
     if pasta_baixados == []:
         return None
-    
+
     # seleciona o OFX mais novo
     pasta_baixados = [os.path.join(path_download, d) for d in pasta_baixados]
     arquivo_novato = max(pasta_baixados, key=os.path.getctime)
-    
+
     dados = open(arquivo_novato)
-    
+
     return dados
 
 
