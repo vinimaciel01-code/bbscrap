@@ -73,7 +73,7 @@ def baixa_extrato(driver, lista_meses, path_download):
     # mes atual
     xpath = '//*[@id="dia"]/option'
     locator = (By.XPATH, xpath)
-    header_ult_mes = driver.find_element(*locator)
+    header_ult_mes = wdw.until(ec.presence_of_element_located(locator))
     header_ult_mes = header_ult_mes.get_attribute('innerHTML')
 
     # todos links

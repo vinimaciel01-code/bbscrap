@@ -11,7 +11,7 @@ driver = chrome_driver.chrome_driver_init()
 navega_pagina.navega_pagina(driver)
 login.login_banco(driver, config.agencia1, config.conta1, config.senha1)
 
-lista_meses = ['jan/22']
+lista_meses = ['mar/22']
 path_download = r'C:\Users\vinim\Downloads'
 
 nav_cartao.navega_pagina(driver)

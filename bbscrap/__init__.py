@@ -1,2 +1,4 @@
 from bbscrap.main import acesso_bb
-from bbscrap import cli
+
+# from .cli import cli
+# cli()
