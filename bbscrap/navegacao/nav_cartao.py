@@ -48,19 +48,17 @@ def navega_pagina(driver):
         pass
 
 
-def baixa_extrato(driver, lista_meses, path_download):
-    """Baixa os extratos dos cartões de crédito.
+def baixa_extrato(driver, lista_meses):
+    """
+    Baixa todos extratos dos meses na lista.
 
     @param driver: driver da página Selenium
-    @param lista_meses: list. Lista com os meses desejados (formato mmm/yy)
-    @param path_download: caminho da pasta de download
+    @param mes: lista com os meses desejados (formato mmm/yy)
     """
+
     wdw = WebDriverWait(driver, 20)
     header = pd.DataFrame({})
     corpo = pd.DataFrame({})
-
-    # tratamento inicial
-    lista_meses = [x.lower() for x in lista_meses]
 
     # testa se existe uma conta cadastrada (se nao existir, retorna dataframes vazios)
     locator = (By.XPATH, '//*[@id="cxErro"]')
@@ -69,136 +67,140 @@ def baixa_extrato(driver, lista_meses, path_download):
         print('Não há cartoes para este cliente.')
         return pd.DataFrame(), pd.DataFrame()
 
+    # tratamento dos meses
+    lista_meses = [x.lower() for x in lista_meses]
+    
+    # add próxima fatura
+    lista_meses.append('Próxima Fatura')
+
+    # loop em todos os meses (se na lista)
+    for index, mes in enumerate(lista_meses):
+        corpo, header = baixa_extrato_de_um_mes(driver, mes)
+        
+ 
+def baixa_extrato_de_um_mes(driver, mes):
+    """Baixa os extratos dos cartões de crédito.
+
+    @param driver: driver da página Selenium
+    @param mes: mes (formato mmm/yy)
+    """
+    wdw = WebDriverWait(driver, 20)
+    header = pd.DataFrame({})
+    corpo = pd.DataFrame({})
+    mes = mes.lower()
+
     # loop nas imagens de cartoes (que se mantém no topo e n some)
     locator = (By.ID, 'carousel-cartoes')
     cartoes = wdw.until(ec.presence_of_element_located(locator))
     cartoes = cartoes.find_elements(By.TAG_NAME, 'img')
 
-    print('\nCartão de crédito')
     for cartao in cartoes:
 
-        print('\n- Cartão', cartao.get_attribute('funcao')[-3:-2])
-
-        # espera a img dos cartoes estar carregada
+        # espera a imagem dos cartoes aparecer
         locator = (By.XPATH, '//*[@id="carousel-cartoes"]/img[1]')
-        wdw.until(ec.element_to_be_clickable(locator))
+        tag = wdw.until(ec.element_to_be_clickable(locator))
 
         # clica no cartão
         cartao.click()
-
-        # espera a tabela do cartao estar carregada
         locator = (By.XPATH, '//*[contains(text(), "Próxima Fatura")]')
-        wdw.until(ec.presence_of_element_located(locator))
+        tag = wdw.until(ec.presence_of_element_located(locator))
         time.sleep(2)
 
-        # meses de todos os links das abas
-        locator = (By.ID, 'tabs-cartao')
-        headers_mes_tags = driver.find_element(*locator)
-        headers_mes_tags = headers_mes_tags.find_elements(By.TAG_NAME, 'a')
-        headers_mes_nomes = [x.text.lower() for x in headers_mes_tags]
+        # Navega até o mes
+        navega_ate_mes(driver, mes)
 
-        # add proximo mes como mmm/aa
-        prox_mes = dt.datetime.strptime(headers_mes_nomes[-2], '%b/%y')
-        prox_mes = prox_mes + relativedelta(months=1)
-        prox_mes = prox_mes.strftime('%b/%y')
-        headers_mes_nomes[headers_mes_nomes.index('próxima fatura')] = prox_mes
+        print('\nCartão', cartao.get_attribute('funcao')[-3:-2])
+        print('Fatura:', mes)
 
-        # loop em todos os meses (se na lista)
-        for index, nome in enumerate(headers_mes_tags):
+        # baixa e le o arquivo
+        time.sleep(1)
+        locator = (By.XPATH, '//a[@title="Salvar Fatura"]')
+        element = wdw.until(ec.element_to_be_clickable(locator))
+        actions = ActionChains(driver)
+        actions.move_to_element(element).perform()
+        driver.find_element(*locator).click()
 
-            tag = headers_mes_tags[index]
+        locator = (By.XPATH, '//div[@class="caixa-dialogo-conteudo"]')
+        element = wdw.until(ec.element_to_be_clickable(locator))
+        element = element.find_elements(By.TAG_NAME, 'a')
+        element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
+        element.click()
 
-            # apenas meses desejados
-            if headers_mes_nomes[index].lower() not in lista_meses:
-                continue
+        time.sleep(2)  # espera para o download começar
+        lista, lista_header = abre_le_arquivo_ofx()
+        
+        # validacao
+        if lista is None or lista.empty:
+            continue
+        
+        # grava o mes de referencia da fatura
+        lista['mes_ref'] = mes
+        lista_header['mes_ref'] = mes
 
-            print('\nFatura:', headers_mes_nomes[index].lower())
+        # grava o tipo de conta
+        lista['tipo_conta'] = 'Cartão'
+        lista_header['tipo_conta'] = 'Cartão'
 
-            # muda para o mes
-            meses_navega_ate_display(driver, tag, nome)
-            tag.click()
+        #  grava número da conta
+        lista['conta'] = [x[-4:] for x in lista['conta']]
+        lista_header['conta'] = [x[-4:] for x in lista_header['conta']]
 
-            # espera o mes carregar (por algum motivo n funciona, logo, sleep)
-            locator = (By.XPATH, '//*[contains(text(), "Resumo da sua fatura")]')
-            wdw.until(ec.presence_of_all_elements_located(locator))
+        # grava no acumulado
+        corpo = pd.concat([corpo, lista], ignore_index=True)
+        header = pd.concat([header, lista_header], ignore_index=True)
 
-            # baixa e le o arquivo
-            locator = (By.XPATH, '//a[@title="Salvar Fatura"]')
-            element = wdw.until(ec.element_to_be_clickable(locator))
-            actions = ActionChains(driver)
-            actions.move_to_element(element).perform()
-            driver.find_element(*locator).click()
-
-            locator = (By.XPATH, '//div[@class="caixa-dialogo-conteudo"]')
-            element = wdw.until(ec.element_to_be_clickable(locator))
-            element = element.find_elements(By.TAG_NAME, 'a')
-            element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
-            element.click()
-
-            time.sleep(2)  # espera para o download começar
-            lista, lista_header = abre_le_arquivo_ofx(path_download)
-
-            # validacao
-            if lista is None or lista.empty:
-                continue
-
-            # grava o mes de referencia da fatura
-            lista['mes_ref'] = headers_mes_nomes[index].lower()
-            lista_header['mes_ref'] = headers_mes_nomes[index].lower()
-
-            # grava o tipo de conta
-            lista['tipo_conta'] = 'Cartão'
-            lista_header['tipo_conta'] = 'Cartão'
-
-            #  grava número da conta
-            lista['conta'] = [x[-4:] for x in lista['conta']]
-            lista_header['conta'] = [x[-4:] for x in lista_header['conta']]
-
-            # grava no acumulado
-            corpo = pd.concat([corpo, lista], ignore_index=True)
-            header = pd.concat([header, lista_header], ignore_index=True)
-
-            print('Data mín:', lista.iloc[0, 0])
+        print('Data mín:', lista.iloc[0, 0])
 
     return corpo, header
 
 
-def meses_navega_ate_display(driver, tag, nome):
+def navega_ate_mes(driver, mes):
     """
-    Coloca em Display o mês do extrato desejado.
+    Navega no Header de meses dos extratos.
 
     Move a partir das setas laterais
     @param driver: driver do navegador
-    @param tag link selenium do extrato
-    @param nome: nome do mês do extrato (mmm/aa)
+    @param mes: mes do mês do extrato (mmm/aa)
     """
-    if tag.get_attribute('style') == 'display: none;':
+    wdw = WebDriverWait(driver, 20)
 
-        # Primeiro mes em display
-        xpath = '//li[@aria-controls="divResultadoExtrato" and @style="display: list-item;"]'
-        locator = (By.XPATH, xpath)
-        display = driver.find_element(*locator)
-        display_esq = display.get_attribute('mes')
-        display_esq = display_esq[-4:] + display_esq[-6:-4]
-        display_esq = dt.datetime.strptime(display_esq, '%Y%m').date()
-        temp_desejo = dt.datetime.strptime(nome, '%b/%y').date()
+    # faturas anteriores
+    locator = (By.ID, 'faturasAnt')
+    ul_anterior = driver.find_element(*locator)
+    li_anterior = ul_anterior.find_elements(By.TAG_NAME, 'li')
+    a_anterior = ul_anterior.find_elements(By.TAG_NAME, 'a')
 
-        # caminha esquerda
-        if temp_desejo < display_esq:
-            xpath = '//li[contains(@class, "ui-tabs-paging-prev")]/a'
-            locator = (By.XPATH, xpath)
-            seta_esq = driver.find_element(*locator)
-            while True:
-                seta_esq.click()
-                if tag.get_attribute('style') != 'display: none;':
-                    break
+    #faturas atuais
+    locator = (By.ID, 'faturasAtual')
+    ul_atual = driver.find_element(*locator)
+    li_atual = ul_atual.find_elements(By.TAG_NAME, 'li')
+    a_atual = ul_atual.find_elements(By.TAG_NAME, 'a')
 
-        # caminha direita
-        else:
-            xpath = '//li[contains(@class, "ui-tabs-paging-next")]/a'
-            locator = (By.XPATH, xpath)
-            seta_dir = driver.find_element(*locator)
-            while True:
-                seta_dir.click()
-                if tag.get_attribute('style') != 'display: none;':
-                    break
+    # botões (setas)
+    bt_anterior = driver.find_element(By.ID, 'laTabs')
+    bt_atual = driver.find_element(By.ID, 'raTabs')
+
+    # text`s
+    text_atual = [x.text.lower() for x in a_atual]
+    
+    text_anterior = [x.text.lower() for x in a_anterior]
+    for i, k in enumerate(text_anterior):
+        k = dt.datetime.strptime(text_atual[0], '%b/%y') + relativedelta(months=-i-1)
+        text_anterior[-i-1] = k.strftime('%b/%y')
+        
+    # Descobre onde o mes desejado está no Header
+    try:
+        index = text_atual.index(mes)
+        a_utilizado = a_atual
+    except:
+        index = text_anterior.index(mes)
+        a_utilizado = a_anterior
+        bt_anterior.click()
+
+    tag = a_utilizado[index]
+    tag.click()
+
+    # espera o mes carregar
+    locator = (By.XPATH, '//*[contains(text(), "Cartão")]')
+    tag = wdw.until(ec.presence_of_all_elements_located(locator))
+

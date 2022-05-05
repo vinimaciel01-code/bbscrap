@@ -2,23 +2,25 @@
 
 import os
 import pandas as pd
+from pathlib import Path
+
 from ofxparse import OfxParser
 
 from bbscrap.utils.arquivo import download_concluido
 
 
-def abre_le_arquivo_ofx(path_download):
+def abre_le_arquivo_ofx():
     """Junta os dois procedimentos abaixo."""
-    dados = abre_arquivo_ofx(path_download)
-
+    dados = abre_arquivo_ofx()
     ofx_header, ofx_dados = ler_ofx(dados)
 
     return ofx_header, ofx_dados
 
 
-def abre_arquivo_ofx(path_download):
+def abre_arquivo_ofx():
     """Seleciona o arquivo que iremos que iremos ler."""
-
+    
+    path_download = str(os.path.join(Path.home(), "Downloads"))
     download_concluido(path_download)
 
     # lista todos arquivos com extensão OFX

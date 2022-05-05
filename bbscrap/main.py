@@ -18,8 +18,9 @@ from bbscrap.utils.data_functions import converte_datetime
 from bbscrap.utils.sistema import blockPrint, enablePrint
 
 
-def acesso_bb(path_download, agencia=None, conta=None, senha=None,
-              dt1=None, outros_titulares=None, block_print=True):
+def acesso_bb(agencia=None, conta=None, senha=None,
+              dt1=None, outros_titulares=None, 
+              block_print=True):
     """Acessa o Banco do Brasil e baixa as informações requisitadas.
 
     @param path_download: caminho completo da pasta de downloads
@@ -31,9 +32,10 @@ def acesso_bb(path_download, agencia=None, conta=None, senha=None,
     Nome parcial é permitido. Apenas extratos de cartões de crédito são baixados.
     """
     # setup
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
     corpo_base = pd.DataFrame({})
     header_base = pd.DataFrame({})
+    
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
     if block_print is True:
         blockPrint()
 

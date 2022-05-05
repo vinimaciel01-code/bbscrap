@@ -49,12 +49,11 @@ def navega_pagina(driver):
         pass
 
 
-def baixa_extrato(driver, lista_meses, path_download):
+def baixa_extrato(driver, lista_meses):
     """Baixa o extratos da conta corrente ou poupança.
 
     @param driver: driver da página Selenium
     @param lista_meses: Lista com os meses desejados (formato mmm/yy)
-    @param path_download: caminho da pasta de download.
     """
     wdw = WebDriverWait(driver, 20)
     corpo = pd.DataFrame({})
@@ -70,124 +69,96 @@ def baixa_extrato(driver, lista_meses, path_download):
         print('Conta de poupança inexistente.')
         return pd.DataFrame(), pd.DataFrame()
 
-    # mes atual
+    # Navega para o mes e download
+    print('\nConta Poupança')
+    for index, nome in enumerate(header_nomes):
+        lista, lista_header = baixa_extrato_de_um_mes(driver, nome)
+        corpo = pd.concat([corpo, lista], ignore_index=True)
+        header = pd.concat([header, lista_header], ignore_index=True)
+        
+
+def baixa_extrato_de_um_mes(driver, nome):
+    """Baixa o extratos da conta corrente ou poupança.
+
+    @param driver: driver da página Selenium
+    @param lista_meses: Lista com os meses desejados (formato mmm/yy)
+    """
+    wdw = WebDriverWait(driver, 20)
+
+    # Header: mes atual
     xpath = '//*[@id="dia"]/option'
     locator = (By.XPATH, xpath)
     header_ult_mes = wdw.until(ec.presence_of_element_located(locator))
     header_ult_mes = header_ult_mes.get_attribute('innerHTML')
 
-    # todos links
+    # Header: todos meses
     xpath = '//li[@aria-controls="divResultadoExtrato"]'
     locator = (By.XPATH, xpath)
     header_lis = driver.find_elements(*locator)
-    header_nomes = meses_links(header_lis)
+    header_nomes = meses_nomes_nos_links(header_lis)
 
-    # Navega para o mes e download
-    print('\nConta Poupança')
-    for index, nome in enumerate(header_nomes):
+    print('\nMês:', nome)
+    index = header_nomes.index(nome)
+    tag = header_lis[index]
 
-        if nome not in lista_meses:
-            continue
+    # coloca o mes desejado em display
+    meses_navega_ate_display(driver, tag, nome)
 
-        print('\nMês:', nome)
-        tag = header_lis[index]
-
-        # coloca o mes desejado em display
-        meses_navega_ate_display(driver, tag, nome)
-
-        # Seleciona o extrato do mes desejados
-        # Para mes corrente: combobox >> abrir seleção >> clica na primeira opção (mes inteiro)
-        if index == len(header_lis) - 2:
-            xpath = '//span[@class="custom-combobox"]//a[@tabindex="-1"]'
-            locator = (By.XPATH, xpath)
-            element = tag.find_element(*locator)
-            element.click()
-
-            xpath = '//li[@class="ui-menu-item"]'
-            locator = (By.XPATH, xpath)
-            tag = driver.find_element(*locator)   # atualizando o Tag!
-
-        tag.click()
-
-        # wait: tabela de valores aparecer
-        locator = (By.XPATH, '//div[@id="divResultadoExtrato"]')
-        wdw.until(ec.element_to_be_clickable(locator))
-
-        # baixa e le arquivo
-        locator = (By.XPATH, '//a[@title="Salvar documento"]')
-        element = wdw.until(ec.element_to_be_clickable(locator))
-        actions = ActionChains(driver)
-        actions.move_to_element(element).perform()
-        driver.find_element(*locator).click()
-
-        locator = (By.XPATH, '//div[@class="caixa-dialogo-conteudo"]')
-        element = wdw.until(ec.element_to_be_clickable(locator))
-        element = element.find_elements(By.TAG_NAME, 'a')
-        element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
+    # Seleciona o extrato do mes desejados
+    # Para mes corrente: combobox >> abrir seleção >> clica na primeira opção (mes inteiro)
+    if index == len(header_lis) - 2:
+        xpath = '//span[@class="custom-combobox"]//a[@tabindex="-1"]'
+        locator = (By.XPATH, xpath)
+        element = tag.find_element(*locator)
         element.click()
 
-        lista, lista_header = abre_le_arquivo_ofx(path_download)
+        xpath = '//li[@class="ui-menu-item"]'
+        locator = (By.XPATH, xpath)
+        tag = driver.find_element(*locator)   # atualizando o Tag!
 
-        # validacao
-        if lista is None or lista.empty:
-            print('lista vazia')
-            continue
+    tag.click()
 
-        # validacao
-        if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:
-            raise Exception('Erro: data do extrato diferente do mês de referência')
+    # wait: tabela de valores aparecer
+    locator = (By.XPATH, '//div[@id="divResultadoExtrato"]')
+    wdw.until(ec.element_to_be_clickable(locator))
 
-        print("Data mín:", lista.iloc[0, 0])
+    # baixa e le arquivo
+    locator = (By.XPATH, '//a[@title="Salvar documento"]')
+    element = wdw.until(ec.element_to_be_clickable(locator))
+    actions = ActionChains(driver)
+    actions.move_to_element(element).perform()
+    driver.find_element(*locator).click()
 
-        # grava o mes
-        lista_header['mes_ref'] = nome.lower()
-        lista['mes_ref'] = nome.lower()
+    locator = (By.XPATH, '//div[@class="caixa-dialogo-conteudo"]')
+    element = wdw.until(ec.element_to_be_clickable(locator))
+    element = element.find_elements(By.TAG_NAME, 'a')
+    element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
+    element.click()
 
-        # grava a variacao
-        lista_header['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
-                                      for x in lista_header['variacao']]
-        lista['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
-                               for x in lista['variacao']]
+    lista, lista_header = abre_le_arquivo_ofx()
 
-        # grava no acumulado
-        corpo = pd.concat([corpo, lista], ignore_index=True)
-        header = pd.concat([header, lista_header], ignore_index=True)
+    # validacao
+    if lista is None or lista.empty:
+        print('Aquivo vazio')
+        return None, None
 
-    return corpo, header
+    # validacao
+    if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:
+        raise Exception('Erro: data do extrato diferente do mês de referência')
 
+    # grava o mes
+    lista_header['mes_ref'] = nome.lower()
+    lista['mes_ref'] = nome.lower()
 
-def meses_links(header_lis):
-    """Pega o html dos links dos meses e retorna lista de meses."""
-    # meses de todos links
-    header_nomes = ['' for x in header_lis]
-    for index, nome in enumerate(header_nomes):
-        temp_mes = ''
-        # especial: pula o ext dos ultimos 30 dias
-        if index == len(header_nomes) - 1:
-            pass
-        # especial: nome do mes atual (anterior + 1month)
-        elif index == len(header_nomes) - 2:
-            nome = header_lis[index - 1]
-            temp_atr = nome.get_attribute('mes')
-            temp_mes = temp_atr
-            if len(temp_mes) > 6:   # corrente
-                temp_mes = temp_mes[-4:] + temp_mes[-6:-4]
-            temp_mes = dt.datetime.strptime(temp_mes, '%Y%m').date()
-            temp_mes = temp_mes + relativedelta(months=1)
-            temp_mes = dt.datetime.strftime(temp_mes, '%b/%y')
-        # normal
-        else:
-            nome = header_lis[index]
-            temp_atr = nome.get_attribute('mes')
-            temp_mes = temp_atr
-            if len(temp_mes) > 6:   # corrente
-                temp_mes = temp_mes[-4:] + temp_mes[-6:-4]
-            temp_mes = dt.datetime.strptime(temp_mes, '%Y%m').date()
-            temp_mes = dt.datetime.strftime(temp_mes, '%b/%y')
-        # salva
-        header_nomes[index] = temp_mes.lower()
+    # grava a variacao
+    lista_header['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
+                                    for x in lista_header['variacao']]
+    lista['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
+                            for x in lista['variacao']]
 
-    return header_nomes
+    print("Data mín:", lista.iloc[0, 0])
+
+    return lista, lista_header
 
 
 def meses_navega_ate_display(driver, tag, nome):
@@ -206,6 +177,7 @@ def meses_navega_ate_display(driver, tag, nome):
         locator = (By.XPATH, xpath)
         display = driver.find_element(*locator)
         display_esq = display.get_attribute('mes')
+        display_esq = display_esq[-4:] + display_esq[-6:-4]
         display_esq = dt.datetime.strptime(display_esq, '%Y%m').date()
         temp_desejo = dt.datetime.strptime(nome, '%b/%y').date()
 
@@ -228,3 +200,45 @@ def meses_navega_ate_display(driver, tag, nome):
                 seta_dir.click()
                 if tag.get_attribute('style') != 'display: none;':
                     break
+
+
+def meses_nomes_nos_links(header_lis):
+    """Pega o html dos links dos meses e retorna lista de meses.
+    
+    @param header_lis: lista com todos os links do cabeçalho
+    """
+    # meses de todos links
+    header_nomes = ['' for x in header_lis]
+    for index, nome in enumerate(header_nomes):
+        # padrão
+        temp_mes = ''
+
+        # especial: pula o extrato dos ultimos 30 dias
+        if index == len(header_nomes) - 1:
+            pass
+        
+        # especial: nome do mes atual (anterior + 1month)
+        elif index == len(header_nomes) - 2:
+            nome = header_lis[index - 1]
+            temp_atr = nome.get_attribute('mes')
+            temp_mes = temp_atr
+            if len(temp_mes) > 6:   # corrente
+                temp_mes = temp_mes[-4:] + temp_mes[-6:-4]
+            temp_mes = dt.datetime.strptime(temp_mes, '%Y%m').date()
+            temp_mes = temp_mes + relativedelta(months=1)
+            temp_mes = dt.datetime.strftime(temp_mes, '%b/%y')
+        
+        # normal
+        else:
+            nome = header_lis[index]
+            temp_atr = nome.get_attribute('mes')
+            temp_mes = temp_atr
+            if len(temp_mes) > 6:   # corrente
+                temp_mes = temp_mes[-4:] + temp_mes[-6:-4]
+            temp_mes = dt.datetime.strptime(temp_mes, '%Y%m').date()
+            temp_mes = dt.datetime.strftime(temp_mes, '%b/%y')
+        
+        # salva
+        header_nomes[index] = temp_mes.lower()
+
+    return header_nomes
