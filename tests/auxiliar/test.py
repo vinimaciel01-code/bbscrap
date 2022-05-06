@@ -1,3 +1,5 @@
+import pandas as pd
+
 import bbscrap.navegacao.drivers as chrome_driver
 import bbscrap.navegacao.nav_pagina as navega_pagina
 import bbscrap.navegacao.login as login
@@ -11,15 +13,22 @@ driver = chrome_driver.chrome_driver_init()
 navega_pagina.navega_pagina(driver)
 login.login_banco(driver, config.agencia1, config.conta1, config.senha1)
 
-lista_meses = ['mai/22']
+lista_meses = ['abr/22', 'mai/22']
 
 nav_corrente.navega_pagina(driver)
-dados = nav_corrente.baixa_extrato(driver, lista_meses)
+dados_corrente, temp = nav_corrente.baixa_extrato(driver, lista_meses)
 
 nav_poupanca.navega_pagina(driver)
-dados = nav_poupanca.baixa_extrato(driver, lista_meses)
+dados_poupanca, temp = nav_poupanca.baixa_extrato(driver, lista_meses)
 
 nav_cartao.navega_pagina(driver)
-dados = nav_cartao.baixa_extrato(driver, lista_meses)
+dados_cartao, temp = nav_cartao.baixa_extrato(driver, lista_meses)
 
 driver.close()
+
+"""Exporta para o Excel"""
+
+with pd.ExcelWriter('test_corpo.xlsx', mode='w') as writer:
+    dados_corrente.to_excel(writer, index=False, float_format='%.2f', sheet_name='corrente')
+    dados_poupanca.to_excel(writer, index=False, float_format='%.2f', sheet_name='poupanca')
+    dados_cartao.to_excel(writer, index=False, float_format='%.2f', sheet_name='cartao')

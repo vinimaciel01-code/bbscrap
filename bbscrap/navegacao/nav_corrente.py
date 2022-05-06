@@ -75,6 +75,8 @@ def baixa_extrato(driver, lista_meses):
         lista, lista_header = baixa_extrato_de_um_mes(driver, nome)
         corpo = pd.concat([corpo, lista], ignore_index=True)
         header = pd.concat([header, lista_header], ignore_index=True)
+    
+    return corpo, header
 
 
 def baixa_extrato_de_um_mes(driver, nome):
@@ -140,7 +142,7 @@ def baixa_extrato_de_um_mes(driver, nome):
     # validacao
     if lista is None or lista.empty:
         print('Arquivo vazio.')
-        return None, None
+        return pd.DataFrame(), pd.DataFrame()
 
     # validacao
     if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:

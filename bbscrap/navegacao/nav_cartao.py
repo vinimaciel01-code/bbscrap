@@ -57,8 +57,8 @@ def baixa_extrato(driver, lista_meses):
     """
 
     wdw = WebDriverWait(driver, 20)
-    header = pd.DataFrame({})
     corpo = pd.DataFrame({})
+    header = pd.DataFrame({})
 
     # testa se existe uma conta cadastrada (se nao existir, retorna dataframes vazios)
     locator = (By.XPATH, '//*[@id="cxErro"]')
@@ -75,8 +75,11 @@ def baixa_extrato(driver, lista_meses):
 
     # loop em todos os meses (se na lista)
     for index, mes in enumerate(lista_meses):
-        corpo, header = baixa_extrato_de_um_mes(driver, mes)
+        lista, lista_header = baixa_extrato_de_um_mes(driver, mes)
+        corpo = pd.concat([corpo, lista], ignore_index=True)
+        header = pd.concat([header, lista_header], ignore_index=True)
         
+    return corpo, header
  
 def baixa_extrato_de_um_mes(driver, mes):
     """Baixa os extratos dos cartões de crédito.
