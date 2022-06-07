@@ -12,9 +12,9 @@ from bbscrap.utils.arquivo import download_concluido
 def abre_le_arquivo_ofx():
     """Junta os dois procedimentos abaixo."""
     dados = abre_arquivo_ofx()
-    ofx_header, ofx_dados = ler_ofx(dados)
+    ofx_dados, ofx_header = ler_ofx(dados)
 
-    return ofx_header, ofx_dados
+    return ofx_dados, ofx_header
 
 
 def abre_arquivo_ofx():
@@ -74,12 +74,12 @@ def ler_ofx(dados):
         lst = pd.DataFrame([lst], columns=cols)
         lista = pd.concat([lista, lst], ignore_index=True)
 
-    # Ajustes no dados finais
+    # Ajuste no valor
     if len(lista) > 0:
+        lista_header['saldo'] = pd.to_numeric(lista_header['saldo'], errors='ignore')
+        
         lista['valor'] = pd.to_numeric(lista['valor'], errors='ignore')
-        lista_header['saldo'] = pd.to_numeric(
-            lista_header['saldo'], errors='ignore'
-        )
+        lista.loc[lista['tipo_mov'] == 'credit', 'valor'] = -lista.loc[lista['tipo_mov'] == 'credit', 'valor']
 
     # add variacao e a tira da conta (se houver)
     lista_header['variacao'] = [
