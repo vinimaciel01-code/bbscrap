@@ -25,6 +25,6 @@ def navega_pagina(driver):
             break
 
     # Navega para a página de login
-    locator = (By.XPATH, '//*[@id="acesseSuaConta"]')
+    locator = (By.XPATH, '//*[@title="Acesse sua conta PF"]')
     tag = wdw.until(ec.presence_of_element_located(locator))
     driver.execute_script('arguments[0].click();', tag)
