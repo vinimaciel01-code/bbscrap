@@ -1,8 +1,7 @@
 config.py
-config_test.py
 .vscode/
 .xlsx
-
+pessoal/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
