@@ -1,19 +1,18 @@
 import os
+from pathlib import Path
 
-import bbscrap.navegacao.lerofx as lerofx
+import bbscrap.tratamento.lerofx as lerofx
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-ofx_path = os.path.join(dir_path, 'auxiliar')
-path_parent = os.path.abspath(os.path.join(ofx_path, ".."))
+nome_arquivo = 'OUROCARD_PLATINUM_ESTILO_VISA-Jun_22.ofx'
 
 
 def test_abre_arquivo_existente():
-    dados = lerofx.abre_arquivo_ofx(ofx_path)
-    assert dados is not None
+    dados_corpo, dados_header = lerofx.ler_ofx(nome_arquivo)
+    assert dados_corpo is not None
 
 
 def test_abre_arquivo_nao_existente():
-    dados = lerofx.abre_arquivo_ofx(path_parent)
+    dados = lerofx.ler_ofx('')
     assert dados is None
 
 
@@ -22,7 +21,7 @@ def test_abre_lerofx_existe_ofx_no_path():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     ofx_path = os.path.join(dir_path, 'auxiliar')
 
-    dados = lerofx.abre_arquivo_ofx(ofx_path)
+    dados = lerofx.ler_ofx(ofx_path)
     ofx_table = lerofx.ler_ofx(dados)
     assert ofx_table is not None
 

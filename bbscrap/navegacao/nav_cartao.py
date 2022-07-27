@@ -10,7 +10,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from bbscrap.navegacao.lerofx import abre_le_arquivo_ofx
+from bbscrap.navegacao.nome_arquivo import ultimo_arquivo_baixado
+
+
+def central(driver, lista_meses):
+    navega_pagina(driver)
+    nome_arquivo_list = baixa_extrato(driver, lista_meses)
+    return nome_arquivo_list
 
 
 def navega_pagina(driver):
@@ -55,10 +61,7 @@ def baixa_extrato(driver, lista_meses):
     @param driver: driver da página Selenium
     @param mes: lista com os meses desejados (formato mmm/yy)
     """
-
     wdw = WebDriverWait(driver, 20)
-    corpo = pd.DataFrame({})
-    header = pd.DataFrame({})
 
     # testa se existe uma conta cadastrada (se nao existir, retorna dataframes vazios)
     locator = (By.XPATH, '//*[@id="cxErro"]')
@@ -74,12 +77,13 @@ def baixa_extrato(driver, lista_meses):
     lista_meses.append('Próxima Fatura')
 
     # loop em todos os meses (se na lista)
-    for index, mes in enumerate(lista_meses):
-        lista, lista_header = baixa_extrato_de_um_mes(driver, mes)
-        corpo = pd.concat([corpo, lista], ignore_index=True)
-        header = pd.concat([header, lista_header], ignore_index=True)
-        
-    return corpo, header
+    print('\nFatura de cartão')
+
+    nome_arquivo_list = dict()
+    for mes in lista_meses:
+        nome_arquivo_list[mes] = baixa_extrato_de_um_mes(driver, mes)
+    
+    return nome_arquivo_list
  
 def baixa_extrato_de_um_mes(driver, mes):
     """Baixa os extratos dos cartões de crédito.
@@ -88,8 +92,7 @@ def baixa_extrato_de_um_mes(driver, mes):
     @param mes: mes (formato mmm/yy)
     """
     wdw = WebDriverWait(driver, 20)
-    header = pd.DataFrame({})
-    corpo = pd.DataFrame({})
+    nome_arquivo_list = list()
     mes = mes.lower()
 
     # loop nas imagens de cartoes (que se mantém no topo e n some)
@@ -130,31 +133,13 @@ def baixa_extrato_de_um_mes(driver, mes):
         element.click()
 
         time.sleep(2)  # espera para o download começar
-        lista, lista_header = abre_le_arquivo_ofx()
-        
+        nome_arquivo_list.append(ultimo_arquivo_baixado())
+
         # validacao
-        if lista is None or lista.empty:
-            continue
-        
-        # grava o mes de referencia da fatura
-        lista['mes_ref'] = mes
-        lista_header['mes_ref'] = mes
+        if len(nome_arquivo_list) == 0:
+            raise ValueError('Erro: arquivo n baixado.')
 
-        # grava o tipo de conta
-        lista['tipo_conta'] = 'Cartão'
-        lista_header['tipo_conta'] = 'Cartão'
-
-        #  grava número da conta
-        lista['conta'] = [x[-4:] for x in lista['conta']]
-        lista_header['conta'] = [x[-4:] for x in lista_header['conta']]
-
-        # grava no acumulado
-        corpo = pd.concat([corpo, lista], ignore_index=True)
-        header = pd.concat([header, lista_header], ignore_index=True)
-
-        print('Data mín:', lista.iloc[0, 0])
-
-    return corpo, header
+    return nome_arquivo_list
 
 
 def navega_ate_mes(driver, mes):

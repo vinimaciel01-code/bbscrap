@@ -10,7 +10,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from bbscrap.navegacao.lerofx import abre_le_arquivo_ofx
+from bbscrap.navegacao.nome_arquivo import ultimo_arquivo_baixado
+
+
+def central(driver, lista_meses):
+    navega_pagina(driver)
+    nome_arquivo_list = baixa_extrato(driver, lista_meses)
+    return nome_arquivo_list
 
 
 def navega_pagina(driver):
@@ -19,7 +25,7 @@ def navega_pagina(driver):
     @param driver: driver da página Selenium
     """
     wdw = WebDriverWait(driver, 20)
-
+    
     # navegacao
     locator = (By.XPATH, '//a[@codigo="32589"]')
     element = wdw.until(ec.element_to_be_clickable(locator))
@@ -56,8 +62,6 @@ def baixa_extrato(driver, lista_meses):
     @param lista_meses: Lista com os meses desejados (formato mmm/yy)
     """
     wdw = WebDriverWait(driver, 20)
-    corpo = pd.DataFrame({})
-    header = pd.DataFrame({})
 
     # tratamento inicial
     lista_meses = [x.lower() for x in lista_meses]
@@ -71,12 +75,11 @@ def baixa_extrato(driver, lista_meses):
 
     # Navega para o mes e download
     print('\nConta Poupança')
-    for index, nome in enumerate(lista_meses):
-        lista, lista_header = baixa_extrato_de_um_mes(driver, nome)
-        corpo = pd.concat([corpo, lista], ignore_index=True)
-        header = pd.concat([header, lista_header], ignore_index=True)
-    
-    return corpo, header
+    nome_arquivo_list = dict()
+    for mes in lista_meses:
+        nome_arquivo_list[mes] = baixa_extrato_de_um_mes(driver, mes)
+        
+    return nome_arquivo_list
 
 def baixa_extrato_de_um_mes(driver, nome):
     """Baixa o extratos da conta corrente ou poupança.
@@ -85,6 +88,7 @@ def baixa_extrato_de_um_mes(driver, nome):
     @param lista_meses: Lista com os meses desejados (formato mmm/yy)
     """
     wdw = WebDriverWait(driver, 20)
+    nome_arquivo_list = list()
 
     # Header: mes atual
     xpath = '//*[@id="dia"]/option'
@@ -136,31 +140,14 @@ def baixa_extrato_de_um_mes(driver, nome):
     element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
     element.click()
 
-    lista, lista_header = abre_le_arquivo_ofx()
+    nome_arquivo_list.append(ultimo_arquivo_baixado())
 
     # validacao
-    if lista is None or lista.empty:
-        print('Aquivo vazio')
-        return pd.DataFrame(), pd.DataFrame()
+    if len(nome_arquivo_list) == 0:
+        print('Erro arquivo n baixado.')
+        raise ValueError('Erro: arquivo n baixado.')
 
-    # validacao
-    if dt.datetime.strftime(lista.iloc[0, 0], '%b/%y').lower() != nome:
-        raise Exception('Erro: data do extrato diferente do mês de referência')
-
-    # grava o mes
-    lista_header['mes_ref'] = nome.lower()
-    lista['mes_ref'] = nome.lower()
-
-    # grava a variacao
-    lista_header['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
-                                    for x in lista_header['variacao']]
-    lista['tipo_conta'] = ['Poupança' if x != '' else 'Conta Corrente'
-                            for x in lista['variacao']]
-
-    print("Data mín:", lista.iloc[0, 0])
-
-    return lista, lista_header
-
+    return nome_arquivo_list
 
 def meses_navega_ate_display(driver, tag, nome):
     """
