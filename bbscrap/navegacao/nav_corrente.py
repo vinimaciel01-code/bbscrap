@@ -71,7 +71,7 @@ def baixa_extrato(driver, lista_meses):
     element = driver.find_elements(*locator)
     if element:
         print('Conta de corrente inexistente.')
-        return pd.DataFrame(), pd.DataFrame()
+        return
 
     # Navega para o mes e download
     print('\nConta Corrente')

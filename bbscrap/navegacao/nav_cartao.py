@@ -68,7 +68,7 @@ def baixa_extrato(driver, lista_meses):
     element = driver.find_elements(*locator)
     if element:
         print('Não há cartoes para este cliente.')
-        return pd.DataFrame(), pd.DataFrame()
+        return
 
     # tratamento dos meses
     lista_meses = [x.lower() for x in lista_meses]

@@ -18,6 +18,14 @@ outros_titulares=None
 tratamento=False
 block_print=False
 
+agencia = 12300
+conta = 1272845
+senha = '02092812'
+data_inicial='01/05/2022'
+outros_titulares=None
+tratamento=False
+block_print=False
+
 import os
 from pathlib import Path
 path_download = str(os.path.join(Path.home(), "Downloads"))

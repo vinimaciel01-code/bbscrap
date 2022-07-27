@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bbscrap"
-version = "5.0.1"
+version = "5.1.1"
 description = "Baixa extatos bancários do Banco do Brasil"
 authors = ["Vinicius Maciel"]
 

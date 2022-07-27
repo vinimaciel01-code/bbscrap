@@ -62,25 +62,28 @@ def acesso_bb(agencia=None, conta=None, senha=None,
     header_base = pd.DataFrame({})
 
     nome_arquivos_list = nav_corrente.central(driver, lista_meses)
-    for key in nome_arquivos_list:
-        for elem in nome_arquivos_list[key]:
-            corpo, header = ler_ofx(elem, key)
-            corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
-            header_base = pd.concat([header_base, header], ignore_index=True)
+    if nome_arquivos_list:
+        for key in nome_arquivos_list:
+            for elem in nome_arquivos_list[key]:
+                corpo, header = ler_ofx(elem, key)
+                corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
+                header_base = pd.concat([header_base, header], ignore_index=True)
 
     nome_arquivos_list = nav_poupanca.central(driver, lista_meses)
-    for key in nome_arquivos_list:
-        for elem in nome_arquivos_list[key]:
-            corpo, header = ler_ofx(elem, key)
-            corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
-            header_base = pd.concat([header_base, header], ignore_index=True)
- 
+    if nome_arquivos_list:
+        for key in nome_arquivos_list:
+            for elem in nome_arquivos_list[key]:
+                corpo, header = ler_ofx(elem, key)
+                corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
+                header_base = pd.concat([header_base, header], ignore_index=True)
+    
     nome_arquivos_list = nav_cartao.central(driver, lista_meses)
-    for key in nome_arquivos_list:
-        for elem in nome_arquivos_list[key]:
-            corpo, header = ler_ofx(elem, key)
-            corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
-            header_base = pd.concat([header_base, header], ignore_index=True)
+    if nome_arquivos_list:
+        for key in nome_arquivos_list:
+            for elem in nome_arquivos_list[key]:
+                corpo, header = ler_ofx(elem, key)
+                corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
+                header_base = pd.concat([header_base, header], ignore_index=True)
  
     # Outros Titulares
     if isinstance(outros_titulares, list):
