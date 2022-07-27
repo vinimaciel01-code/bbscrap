@@ -6,8 +6,10 @@ Download dos extratos de conta corrente, poupança e cartões de crédito do tit
 Para os outros titulares, baixa apenas o cartão de crédito (pois os extratos são os mesmos).
 """
 
-import datetime as dt
 import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+import datetime as dt
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 
@@ -35,7 +37,7 @@ def acesso_bb(agencia=None, conta=None, senha=None,
     Nome parcial é permitido. Apenas extratos de cartões de crédito são baixados.
     """
     
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+    
     if block_print is True:
         blockPrint()
 

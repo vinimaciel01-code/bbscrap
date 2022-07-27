@@ -6,6 +6,9 @@ Modificações na base de dados de extratos
 - cria algumas variáveis sempre fixas
 """
 
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
 import pandas as pd
 import datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -19,9 +22,9 @@ def altera_variaveis(dados):
     data_base = dados.copy()
 
     # Ajuste no valor
-    if len(dados) > 0:
-        dados['valor'] = pd.to_numeric(dados['valor'], errors='ignore')
-        dados.loc[dados['tipo_mov'] == 'credit', 'valor'] = abs(dados.loc[dados['tipo_mov'] == 'credit', 'valor'])
+    if len(data_base) > 0:
+        data_base['valor'] = pd.to_numeric(data_base['valor'], errors='ignore')
+        data_base.loc[data_base['tipo_mov'] == 'credit', 'valor'] = abs(data_base.loc[data_base['tipo_mov'] == 'credit', 'valor'])
 
     # MES_REF
     
