@@ -1,5 +1,8 @@
 """Função auxiliar: ler o ofx salvado na pasta de downloads."""
 
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
 import os
 from pathlib import Path
 import pandas as pd
@@ -37,7 +40,7 @@ def ler_ofx(nome_arquivo, mes_ref=None):
     lista_header['tipo'] = [account.type]
     lista_header['dt_inicio'] = [statement.start_date]
     lista_header['dt_fim'] = [statement.end_date]
-    lista_header['saldo'] = [statement.balance]
+    lista_header['saldo'] = pd.to_numeric([statement.balance], errors='ignore')
 
     # add extras
     lista_header['variacao'] = [x[x.find('/') + 1:] if x.find('/') > 0 else '' for x in lista_header['conta']]
