@@ -23,11 +23,18 @@ def login_banco(driver, agencia=None, conta=None, senha=None):
     if agencia is None or conta is None:
         print('Insira a agência e conta.')
         locator = (By.ID, 'senhaConta')
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 120).until(
               ec.presence_of_element_located(locator),
               message='Encerrado: ag/conta não add.')
 
     else:
+
+        # Navega para a página de login
+        locator = (By.XPATH, '//*[@title="Acesse sua conta PF"]')
+        tag = wdw.until(ec.presence_of_element_located(locator))
+        driver.execute_script('arguments[0].click();', tag)
+
+        # insere agencia e conta
         locator = (By.ID, 'dependenciaOrigem')
         dob = wdw.until(ec.presence_of_element_located(locator))
         for _ in range(0, 10):
@@ -40,6 +47,7 @@ def login_banco(driver, agencia=None, conta=None, senha=None):
             dob.send_keys(Keys.BACKSPACE)
         dob.send_keys(f'{conta}')
 
+        # envia os dados e vai para pagina de senha
         locator = (By.ID, 'botaoEnviar')
         driver.find_element(*locator).click()
 

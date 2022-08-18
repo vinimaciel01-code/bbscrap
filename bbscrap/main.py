@@ -9,9 +9,12 @@ Para os outros titulares, baixa apenas o cartão de crédito (pois os extratos s
 import locale
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
+import os
 import datetime as dt
-import pandas as pd
 from dateutil.relativedelta import relativedelta
+import pandas as pd
+from tkinter import *
+from tkinter import filedialog
 
 from bbscrap.navegacao import drivers, nav_pagina, login, dependente
 from bbscrap.navegacao import nav_corrente, nav_poupanca, nav_cartao
@@ -25,8 +28,9 @@ from bbscrap.utils.sistema import blockPrint, enablePrint
 
 def acesso_bb(agencia=None, conta=None, senha=None,
               data_inicial=None, outros_titulares=None, 
-              tratamento=False,
-              block_print=True):
+              tratamento=False, export_file=False,
+              block_print=False):
+
     """Acessa o Banco do Brasil e baixa as informações requisitadas.
 
     @param agencia: número da agência (com DV, sem traço)
@@ -37,17 +41,19 @@ def acesso_bb(agencia=None, conta=None, senha=None,
     Nome parcial é permitido. Apenas extratos de cartões de crédito são baixados.
     """
     
-    
+    # bloqueia prints na tela
     if block_print is True:
         blockPrint()
 
     # datas
-    data_inicial = converte_datetime(data_inicial)
     data_final = dt.datetime.today()
-    if data_inicial is None or data_inicial > data_final:
-        data_inicial = converte_datetime(data_final - relativedelta(years=1))
+    if data_inicial is None :
+        data_inicial = data_final - relativedelta(months=1)
     else:
         data_inicial = converte_datetime(data_inicial)
+
+    if data_inicial > data_final:
+        data_inicial = data_final - relativedelta(months=1)
 
     lista_meses = pd.date_range(data_inicial, data_final, freq='MS').tolist()
     lista_meses = [x.strftime('%b/%y') for x in lista_meses]
@@ -108,5 +114,27 @@ def acesso_bb(agencia=None, conta=None, senha=None,
     if tratamento is True:
         corpo_base, header_base = tratamento_dados(corpo_base, header_base)
 
+    # export
+    if export_file is True:
+        
+        # caminho
+        root = Tk()
+        root.withdraw()
+        root.update()
+        file_path = filedialog.askdirectory()
+        root.destroy()
+        # nome
+        file_date = dt.datetime.now().strftime("%Y_%m_%d_%Ih%Mm%Ss")
+        # juntos
+        file_name = os.path.join(file_path,f"acessobb_{file_date}.xlsx")
+
+        with pd.ExcelWriter(file_name, mode='w') as writer:
+            corpo_base.to_excel(writer, index=False, float_format='%.2f', sheet_name='corpo')
+            header_base.to_excel(writer, index=False, float_format='%.2f', sheet_name='header')
+        
+        print("Arquivo exportado com sucesso.")
+
+        return
+    
     # Fim
     return corpo_base, header_base
