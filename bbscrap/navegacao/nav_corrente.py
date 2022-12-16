@@ -73,16 +73,29 @@ def baixa_extrato(driver, lista_meses):
         print('Conta de corrente inexistente.')
         return
 
+    # Meses existentes no BB: mes atual
+    xpath = '//*[@id="dia"]/option'
+    locator = (By.XPATH, xpath)
+    header_ult_mes = driver.find_element(*locator)
+    header_ult_mes = header_ult_mes.get_attribute('innerHTML')
+
+    # Meses existentes no BB: todos meses
+    xpath = '//li[@aria-controls="divResultadoExtrato"]'
+    locator = (By.XPATH, xpath)
+    header_lis = driver.find_elements(*locator)
+    header_nomes = meses_nomes_nos_links(header_lis)
+
     # Navega para o mes e download
     print('\nConta Corrente')
     nome_arquivo_list = dict()
     for mes in lista_meses:
-        nome_arquivo_list[mes] = baixa_extrato_de_um_mes(driver, mes)
+        if mes in header_nomes:
+            nome_arquivo_list[mes] = baixa_extrato_de_um_mes(driver, mes, header_nomes, header_lis)
 
     return nome_arquivo_list
 
 
-def baixa_extrato_de_um_mes(driver, nome):
+def baixa_extrato_de_um_mes(driver, nome, header_nomes, header_lis):
     """Baixa o extratos da conta corrente.
 
     @param driver: driver da página Selenium
@@ -91,19 +104,9 @@ def baixa_extrato_de_um_mes(driver, nome):
     wdw = WebDriverWait(driver, 20)
     nome_arquivo_list = list()
 
-    # Header: mes atual
-    xpath = '//*[@id="dia"]/option'
-    locator = (By.XPATH, xpath)
-    header_ult_mes = driver.find_element(*locator)
-    header_ult_mes = header_ult_mes.get_attribute('innerHTML')
+    print('Mês:', nome)
 
-    # Header: todos meses
-    xpath = '//li[@aria-controls="divResultadoExtrato"]'
-    locator = (By.XPATH, xpath)
-    header_lis = driver.find_elements(*locator)
-    header_nomes = meses_nomes_nos_links(header_lis)
-
-    print('\nMês:', nome)
+    # foca no mes desejado
     index = header_nomes.index(nome)
     tag = header_lis[index]
 

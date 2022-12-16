@@ -1,3 +1,4 @@
+
 """Acesso à conta do Banco do Brasil.
 
 Acessa a conta pessoal do Banco do Brasil do usuário.
@@ -26,10 +27,8 @@ from bbscrap.utils.data_functions import converte_datetime
 from bbscrap.utils.sistema import blockPrint, enablePrint
 
 
-def acesso_bb(agencia=None, conta=None, senha=None,
-              data_inicial=None, outros_titulares=None, 
-              tratamento=False, export_file=False,
-              block_print=False):
+def acesso_bb(agencia=None, conta=None, senha=None, data_inicial=None, outros_titulares=True, 
+              tratamento=True, export_file=True, import_file=False, block_print=False):
 
     """Acessa o Banco do Brasil e baixa as informações requisitadas.
 
@@ -45,58 +44,74 @@ def acesso_bb(agencia=None, conta=None, senha=None,
     if block_print is True:
         blockPrint()
 
-    # datas
-    data_final = dt.datetime.today()
-    if data_inicial is None :
-        data_inicial = data_final - relativedelta(months=1)
-    else:
-        data_inicial = converte_datetime(data_inicial)
+    # import o ofx, em vez de baixar
+    if import_file is True:
+        
+        root = Tk()
+        root.update()
+        file_list = filedialog.askopenfilenames()
+        root.destroy()
 
-    if data_inicial > data_final:
-        data_inicial = data_final - relativedelta(months=1)
+        for fl in file_list:
+            corpo_base, header_base = ler_ofx(fl)
 
-    lista_meses = pd.date_range(data_inicial, data_final, freq='MS').tolist()
-    lista_meses = [x.strftime('%b/%y') for x in lista_meses]
-    lista_meses = [x.lower() for x in lista_meses]
+    elif import_file is False: 
 
-    # Inicializa pagina
-    driver = drivers.chrome_driver_init()
-    nav_pagina.navega_pagina(driver)
-    login.login_banco(driver, agencia, conta, senha)
+        # datas
+        data_final = dt.datetime.today()
+        if data_inicial is None:
+            data_inicial = data_final - relativedelta(months=1)
+        else:
+            data_inicial = converte_datetime(data_inicial)
 
-    # Títular Principal
+        if data_inicial > data_final:
+            data_inicial = data_final - relativedelta(months=1)
+
+        # data final corrigida (tb queremos as faturas, com data_ref do mes seguinte.)
+        data_final = data_final + relativedelta(months=1)
+
+        lista_meses = pd.date_range(data_inicial, data_final, freq='MS').tolist()
+        lista_meses = [x.strftime('%b/%y') for x in lista_meses]
+        lista_meses = [x.lower() for x in lista_meses]
+
+        # Inicializa pagina
+        driver = drivers.chrome_driver_init()
+        nav_pagina.navega_pagina(driver)
+        login.login_banco(driver, agencia, conta, senha)
+
+        # Títular Principal
+        
+        corpo_base = pd.DataFrame({})
+        header_base = pd.DataFrame({})
+
+        nome_arquivos_list = nav_corrente.central(driver, lista_meses)
+        if nome_arquivos_list:
+            for key in nome_arquivos_list:
+                for elem in nome_arquivos_list[key]:
+                    corpo, header = ler_ofx(elem, key)
+                    corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
+                    header_base = pd.concat([header_base, header], ignore_index=True)
+
+        nome_arquivos_list = nav_poupanca.central(driver, lista_meses)
+        if nome_arquivos_list:
+            for key in nome_arquivos_list:
+                for elem in nome_arquivos_list[key]:
+                    corpo, header = ler_ofx(elem, key)
+                    corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
+                    header_base = pd.concat([header_base, header], ignore_index=True)
+        
+        nome_arquivos_list = nav_cartao.central(driver, lista_meses)
+        if nome_arquivos_list:
+            for key in nome_arquivos_list:
+                for elem in nome_arquivos_list[key]:
+                    corpo, header = ler_ofx(elem, key)
+                    corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
+                    header_base = pd.concat([header_base, header], ignore_index=True)
     
-    corpo_base = pd.DataFrame({})
-    header_base = pd.DataFrame({})
-
-    nome_arquivos_list = nav_corrente.central(driver, lista_meses)
-    if nome_arquivos_list:
-        for key in nome_arquivos_list:
-            for elem in nome_arquivos_list[key]:
-                corpo, header = ler_ofx(elem, key)
-                corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
-                header_base = pd.concat([header_base, header], ignore_index=True)
-
-    nome_arquivos_list = nav_poupanca.central(driver, lista_meses)
-    if nome_arquivos_list:
-        for key in nome_arquivos_list:
-            for elem in nome_arquivos_list[key]:
-                corpo, header = ler_ofx(elem, key)
-                corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
-                header_base = pd.concat([header_base, header], ignore_index=True)
-    
-    nome_arquivos_list = nav_cartao.central(driver, lista_meses)
-    if nome_arquivos_list:
-        for key in nome_arquivos_list:
-            for elem in nome_arquivos_list[key]:
-                corpo, header = ler_ofx(elem, key)
-                corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
-                header_base = pd.concat([header_base, header], ignore_index=True)
- 
-    # Outros Titulares
-    if isinstance(outros_titulares, list):
-        for titular in outros_titulares:
-            if dependente.login_dependente(driver, titular):
+        # Outros Titulares
+        for i in range(2, 5):
+            login_dependente = dependente.login_dependente(driver, str(i)+"º")
+            if login_dependente is True:
                 nome_arquivos_list = nav_cartao.central(driver, lista_meses)
                 if nome_arquivos_list:
                     for key in nome_arquivos_list:
@@ -104,11 +119,13 @@ def acesso_bb(agencia=None, conta=None, senha=None,
                             corpo, header = ler_ofx(elem, key)
                             corpo_base = pd.concat([corpo_base, corpo], ignore_index=True)
                             header_base = pd.concat([header_base, header], ignore_index=True)
+            else:
+                break
 
-    # Encerra driver
-    driver.close()
-    if block_print is True:
-        enablePrint()
+        # Encerra driver
+        driver.close()
+        if block_print is True:
+            enablePrint()
 
     #Tratamento de dados
     if tratamento is True:
@@ -119,12 +136,12 @@ def acesso_bb(agencia=None, conta=None, senha=None,
         
         # caminho
         root = Tk()
-        root.withdraw()
+        # root.withdraw()
         root.update()
         file_path = filedialog.askdirectory()
         root.destroy()
         # nome
-        file_date = dt.datetime.now().strftime("%Y_%m_%d_%Ih%Mm%Ss")
+        file_date = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%Ss")
         # juntos
         file_name = os.path.join(file_path,f"acessobb_{file_date}.xlsx")
 

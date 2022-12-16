@@ -30,10 +30,14 @@ def login_banco(driver, agencia=None, conta=None, senha=None):
     else:
 
         # Navega para a página de login
-        locator = (By.XPATH, '//*[@title="Acesse sua conta PF"]')
+        locator = (By.XPATH, '//*[@id="header"]/header/bb-navbar-header/nav/div[2]/div[2]/bb-navbar-dropdown')
         tag = wdw.until(ec.presence_of_element_located(locator))
         driver.execute_script('arguments[0].click();', tag)
 
+        locator = (By.XPATH, '//*[@id="cdk-overlay-0"]/bb-dropdown-menu/bb-menu/ul/li[1]/a')
+        tag = wdw.until(ec.presence_of_element_located(locator))
+        driver.execute_script('arguments[0].click();', tag)
+        
         # insere agencia e conta
         locator = (By.ID, 'dependenciaOrigem')
         dob = wdw.until(ec.presence_of_element_located(locator))

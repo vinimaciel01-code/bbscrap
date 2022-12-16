@@ -15,8 +15,11 @@ def memo_divisao(dados):
     # Substituições
     substituida = {
         'PIX - Enviado': 'PIX Enviado',
+        'Pix - Enviado': 'Pix Enviado',
         'PIX - Recebido': 'PIX Recebido',
+        'Pix - Recebido': 'Pix Recebido',
         'PIX - Rejeitado': 'PIX Rejeitado',
+        'Pix - Rejeitado': 'Pix Rejeitado',
     }
     memo.replace(substituida, regex=True, inplace=True)
 

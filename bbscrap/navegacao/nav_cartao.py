@@ -113,31 +113,31 @@ def baixa_extrato_de_um_mes(driver, mes):
         time.sleep(2)
 
         # Navega até o mes
-        navega_ate_mes(driver, mes)
+        if navega_ate_mes(driver, mes):
 
-        print('\nCartão', cartao.get_attribute('funcao')[-3:-2])
-        print('Fatura:', mes)
+            print('Cartão', cartao.get_attribute('funcao')[-3:-2])
+            print('Fatura:', mes)
 
-        # baixa e le o arquivo
-        time.sleep(1)
-        locator = (By.XPATH, '//a[@title="Salvar Fatura"]')
-        element = wdw.until(ec.element_to_be_clickable(locator))
-        actions = ActionChains(driver)
-        actions.move_to_element(element).perform()
-        driver.find_element(*locator).click()
+            # baixa e le o arquivo
+            time.sleep(1)
+            locator = (By.XPATH, '//a[@title="Salvar Fatura"]')
+            element = wdw.until(ec.element_to_be_clickable(locator))
+            actions = ActionChains(driver)
+            actions.move_to_element(element).perform()
+            driver.find_element(*locator).click()
 
-        locator = (By.XPATH, '//div[@class="caixa-dialogo-conteudo"]')
-        element = wdw.until(ec.element_to_be_clickable(locator))
-        element = element.find_elements(By.TAG_NAME, 'a')
-        element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
-        element.click()
+            locator = (By.XPATH, '//div[@class="caixa-dialogo-conteudo"]')
+            element = wdw.until(ec.element_to_be_clickable(locator))
+            element = element.find_elements(By.TAG_NAME, 'a')
+            element = [x for x in element if x.text == 'Money 2000+ (ofx)'][0]
+            element.click()
 
-        time.sleep(2)  # espera para o download começar
-        nome_arquivo_list.append(ultimo_arquivo_baixado())
+            time.sleep(2)  # espera para o download começar
+            nome_arquivo_list.append(ultimo_arquivo_baixado())
 
-        # validacao
-        if len(nome_arquivo_list) == 0:
-            raise ValueError('Erro: arquivo n baixado.')
+            # validacao
+            if len(nome_arquivo_list) == 0:
+                raise ValueError('Erro: arquivo n baixado.')
 
     return nome_arquivo_list
 
@@ -181,9 +181,12 @@ def navega_ate_mes(driver, mes):
         index = text_atual.index(mes)
         a_utilizado = a_atual
     except:
-        index = text_anterior.index(mes)
-        a_utilizado = a_anterior
-        bt_anterior.click()
+        try:
+            index = text_anterior.index(mes)
+            a_utilizado = a_anterior
+            bt_anterior.click()
+        except:
+            return False
 
     tag = a_utilizado[index]
     tag.click()
@@ -191,4 +194,6 @@ def navega_ate_mes(driver, mes):
     # espera o mes carregar
     locator = (By.XPATH, '//*[contains(text(), "Cartão")]')
     tag = wdw.until(ec.presence_of_all_elements_located(locator))
+
+    return True
 
